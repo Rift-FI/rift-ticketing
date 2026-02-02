@@ -29,6 +29,15 @@ export async function GET(
       orderBy: {
         createdAt: 'desc',
       },
+      select: {
+        id: true,
+        status: true,
+        receiptNumber: true,
+        transactionCode: true,
+        invoiceUrl: true,
+        createdAt: true,
+        ticketEmailSent: true,
+      },
     });
 
     if (!invoice) {
