@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             userId: true,
+            status: true,
           },
         },
       },
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             userId: true,
+            status: true,
           },
         },
       },
