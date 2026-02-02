@@ -69,25 +69,54 @@ export async function POST(request: NextRequest) {
 
       // Send confirmation email
       if (invoice.user.email && invoice.event) {
+        // Format date nicely
+        const eventDate = new Date(invoice.event.date);
+        const formattedDate = eventDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric'
+        });
+        const formattedTime = eventDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
         const emailBody = `
-Dear ${invoice.user.name || invoice.user.externalId},
+Hello ${invoice.user.name || invoice.user.externalId.split('@')[0]},
 
 Thank you for your payment! Your RSVP has been confirmed.
 
-Event Details:
-- Event: ${invoice.event.title}
-- Date: ${new Date(invoice.event.date).toLocaleDateString()}
-- Location: ${invoice.event.location}
-- Order ID: ${invoice.orderId || 'N/A'}
+═══════════════════════════════════════════════════════════════
 
-Payment Information:
-${receipt_number ? `- M-Pesa Receipt: ${receipt_number}` : ''}
-${transaction_code && !receipt_number ? `- Transaction Code: ${transaction_code}` : ''}
+EVENT DETAILS
+═══════════════════════════════════════════════════════════════
+
+Event: ${invoice.event.title}
+Date: ${formattedDate}
+Time: ${formattedTime}
+Location: ${invoice.event.location}
+
+═══════════════════════════════════════════════════════════════
+
+PAYMENT CONFIRMATION
+═══════════════════════════════════════════════════════════════
+
+Order ID: ${invoice.orderId || 'N/A'}
+Payment Status: ✓ Confirmed
+${receipt_number ? `M-Pesa Receipt: ${receipt_number}` : ''}
+${transaction_code && !receipt_number ? `Transaction Code: ${transaction_code}` : ''}
+
+═══════════════════════════════════════════════════════════════
 
 We look forward to seeing you at the event!
 
 Best regards,
 Rift Finance Team
+
+---
+This is your payment confirmation. Please save this email for your records.
           `.trim();
 
         await sendEmail({

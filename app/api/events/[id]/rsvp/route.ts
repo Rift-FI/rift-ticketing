@@ -183,24 +183,53 @@ export async function POST(
         // Send confirmation email
         let emailSent = false;
         if (user.email) {
+          // Format date nicely
+          const eventDate = new Date(event.date);
+          const formattedDate = eventDate.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric'
+          });
+          const formattedTime = eventDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
           const emailBody = `
-Dear ${user.name || user.externalId},
+Hello ${user.name || user.externalId.split('@')[0]},
 
 Thank you for your payment! Your RSVP has been confirmed.
 
-Event Details:
-- Event: ${event.title}
-- Date: ${new Date(event.date).toLocaleDateString()}
-- Location: ${event.location}
-- Order ID: ${invoice.orderId || 'N/A'}
+═══════════════════════════════════════════════════════════════
 
-Payment Information:
-${transactionResponse.transactionHash ? `- Transaction Hash: ${transactionResponse.transactionHash}` : ''}
+EVENT DETAILS
+═══════════════════════════════════════════════════════════════
+
+Event: ${event.title}
+Date: ${formattedDate}
+Time: ${formattedTime}
+Location: ${event.location}
+
+═══════════════════════════════════════════════════════════════
+
+PAYMENT CONFIRMATION
+═══════════════════════════════════════════════════════════════
+
+Order ID: ${invoice.orderId || 'N/A'}
+Payment Status: ✓ Confirmed
+${transactionResponse.transactionHash ? `Transaction Hash: ${transactionResponse.transactionHash}` : ''}
+
+═══════════════════════════════════════════════════════════════
 
 We look forward to seeing you at the event!
 
 Best regards,
 Rift Finance Team
+
+---
+This is your payment confirmation. Please save this email for your records.
           `.trim();
 
           try {

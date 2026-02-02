@@ -68,6 +68,7 @@ export async function GET(
       receiptNumber: invoice.receiptNumber,
       transactionCode: invoice.transactionCode,
       invoiceUrl: invoice.invoiceUrl,
+      ticketEmailSent: invoice.ticketEmailSent || false,
     });
   } catch (error: any) {
     console.error('Invoice status error:', error);

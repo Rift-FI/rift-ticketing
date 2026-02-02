@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Calendar, MapPin, Users, Share2, Edit, Trash2, BarChart3 } from 'lucide-react';
+import { Calendar, MapPin, Users, Share2, Edit, Trash2, BarChart3, Mail } from 'lucide-react';
 import { generateGoogleCalendarUrl } from '@/lib/calendar';
 
 interface Event {
@@ -55,6 +55,8 @@ export default function EventDetailsPage() {
   const [sellingRate, setSellingRate] = useState<number | null>(null); // For invoice calculations
   const [emailSent, setEmailSent] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [ticketEmailSent, setTicketEmailSent] = useState(false);
+  const [sendingTicket, setSendingTicket] = useState(false);
 
   // Check for payment redirect query parameters
   useEffect(() => {
@@ -182,6 +184,41 @@ export default function EventDetailsPage() {
     }
   };
 
+  const handleSendTicket = async () => {
+    if (!bearerToken) return;
+    
+    setSendingTicket(true);
+    try {
+      const response = await fetch(`/api/rsvps/${eventId}/send-ticket`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.alreadySent) {
+          setError('Ticket email has already been sent. Please check your inbox and spam folder.');
+        } else {
+          setError(data.error || 'Failed to send ticket email');
+        }
+        return;
+      }
+
+      // Mark as sent
+      setTicketEmailSent(true);
+      setError('');
+      alert('Ticket email sent successfully! Please check your inbox and spam folder.');
+    } catch (error) {
+      console.error('Error sending ticket:', error);
+      setError('Failed to send ticket email. Please try again.');
+    } finally {
+      setSendingTicket(false);
+    }
+  };
+
   const fetchEventDetails = async () => {
     try {
       setIsLoading(true);
@@ -217,6 +254,11 @@ export default function EventDetailsPage() {
               
               if (invoiceData.hasInvoice) {
                 setPaymentUrl(invoiceData.invoiceUrl);
+                
+                // Check if ticket email was sent
+                if (invoiceData.ticketEmailSent) {
+                  setTicketEmailSent(true);
+                }
                 
                 // Determine payment status
                 // Only show "pending" if we have a transaction code (payment widget redirected back)
@@ -637,22 +679,37 @@ export default function EventDetailsPage() {
                           </Alert>
                         )}
                         {event && (
-                          <Button
-                            onClick={() => {
-                              const calendarUrl = generateGoogleCalendarUrl({
-                                title: event.title,
-                                description: event.description,
-                                location: event.location,
-                                startDate: new Date(event.date),
-                              });
-                              window.open(calendarUrl, '_blank');
-                            }}
-                            variant="outline"
-                            className="w-full"
-                          >
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Add to Google Calendar
-                          </Button>
+                          <div className="space-y-2">
+                            <Button
+                              onClick={() => {
+                                const calendarUrl = generateGoogleCalendarUrl({
+                                  title: event.title,
+                                  description: event.description,
+                                  location: event.location,
+                                  startDate: new Date(event.date),
+                                });
+                                window.open(calendarUrl, '_blank');
+                              }}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Add to Google Calendar
+                            </Button>
+                            <Button
+                              onClick={handleSendTicket}
+                              disabled={sendingTicket || ticketEmailSent}
+                              variant="outline"
+                              className="w-full"
+                            >
+                              <Mail className="w-4 h-4 mr-2" />
+                              {sendingTicket 
+                                ? 'Sending...' 
+                                : ticketEmailSent 
+                                ? 'Ticket Sent ✓' 
+                                : 'Send Ticket to Email'}
+                            </Button>
+                          </div>
                         )}
                       </div>
                     ) : paymentStatus === 'failed' ? (

@@ -8,7 +8,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, MapPin, ReceiptText, Hash, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, ReceiptText, Hash, ExternalLink, Mail } from 'lucide-react';
 import Image from 'next/image';
 
 interface RSVP {
@@ -26,6 +26,7 @@ interface RSVP {
   createdAt: string;
   receiptNumber?: string | null; // M-Pesa receipt
   transactionCode?: string | null; // Transaction hash/URL
+  ticketEmailSent?: boolean; // Track if ticket email was sent
 }
 
 export default function MyRSVPsPage() {
@@ -34,6 +35,7 @@ export default function MyRSVPsPage() {
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sellingRate, setSellingRate] = useState<number | null>(null);
+  const [sendingTicket, setSendingTicket] = useState<string | null>(null); // Track which RSVP is sending ticket
 
   useEffect(() => {
     if (!user) {
@@ -72,6 +74,40 @@ export default function MyRSVPsPage() {
       console.error('Error fetching RSVPs:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSendTicket = async (eventId: string) => {
+    if (!bearerToken) return;
+    
+    setSendingTicket(eventId);
+    try {
+      const response = await fetch(`/api/rsvps/${eventId}/send-ticket`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${bearerToken}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.alreadySent) {
+          alert('Ticket email has already been sent. Please check your inbox and spam folder.');
+        } else {
+          alert(data.error || 'Failed to send ticket email');
+        }
+        return;
+      }
+
+      // Refresh RSVPs to update ticketEmailSent status
+      await fetchRSVPs();
+      alert('Ticket email sent successfully! Please check your inbox and spam folder.');
+    } catch (error) {
+      console.error('Error sending ticket:', error);
+      alert('Failed to send ticket email. Please try again.');
+    } finally {
+      setSendingTicket(null);
     }
   };
 
@@ -219,7 +255,7 @@ export default function MyRSVPsPage() {
                               </a>
                             ) : (
                               <p className="font-mono text-sm font-semibold break-all">
-                                {rsvp.transactionCode}
+                                {rsvp.transactionCode.replace(/^#/, '')}
                               </p>
                             )}
                           </div>
@@ -234,6 +270,21 @@ export default function MyRSVPsPage() {
                       >
                         View Event Details
                       </Button>
+                      {rsvp.status === 'CONFIRMED' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleSendTicket(rsvp.event.id)}
+                          disabled={sendingTicket === rsvp.event.id || rsvp.ticketEmailSent}
+                          className="flex items-center gap-2"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {sendingTicket === rsvp.event.id 
+                            ? 'Sending...' 
+                            : rsvp.ticketEmailSent 
+                            ? 'Ticket Sent ✓' 
+                            : 'Send Ticket to Email'}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

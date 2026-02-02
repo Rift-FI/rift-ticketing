@@ -3,8 +3,19 @@
 import { prisma } from "@/lib/prisma";
 import rift from "@/lib/rift";
 
+// Email validation function
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 export async function signupAction(externalId: string, password: string, email?: string, displayName?: string) {
   try {
+    // Validate that externalId is a valid email
+    if (!isValidEmail(externalId)) {
+      return { error: "Username must be a valid email address" };
+    }
+
     // Check if user already exists in our DB
     const existingUser = await prisma.user.findUnique({
       where: { externalId },
@@ -14,11 +25,15 @@ export async function signupAction(externalId: string, password: string, email?:
       return { error: "User already exists" };
     }
 
+    // Since users signup with email as username, externalId is the email
+    // Use externalId as the email (it's already validated as email above)
+    const userEmail = email || externalId;
+
     // Create user in Rift
     const riftSignupResponse = await rift.auth.signup({
       externalId,
       password,
-      email: email || `${externalId}@example.com`,
+      email: userEmail,
       displayName: displayName || externalId,
     });
 
@@ -34,7 +49,7 @@ export async function signupAction(externalId: string, password: string, email?:
     const user = await prisma.user.create({
       data: {
         externalId,
-        email: email || `${externalId}@example.com`,
+        email: userEmail,
         name: displayName || externalId,
         riftUserId: riftSignupResponse.userId,
         bearerToken: accessToken, // Save JWT token from Rift
@@ -62,6 +77,11 @@ export async function signupAction(externalId: string, password: string, email?:
 
 export async function loginAction(externalId: string, password: string) {
   try {
+    // Validate that externalId is a valid email
+    if (!isValidEmail(externalId)) {
+      return { error: "Username must be a valid email address" };
+    }
+
     // Login with Rift SDK
     const riftLoginResponse = await rift.auth.login({
       externalId,
@@ -95,10 +115,13 @@ export async function loginAction(externalId: string, password: string) {
       const riftUser = riftUserResponse.user;
       const walletAddress = riftLoginResponse.address; // Get wallet address from login
 
+      // Use externalId as email (it's already validated as email above)
+      const userEmail = riftUser.email || externalId;
+
       user = await prisma.user.create({
         data: {
           externalId: riftUser.externalId || externalId,
-          email: riftUser.email || undefined,
+          email: userEmail,
           name: riftUser.displayName || undefined,
           riftUserId: riftUser.id,
           role: "USER",

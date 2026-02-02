@@ -99,6 +99,7 @@ model Invoice {
   transactionCode String?  @unique
   receiptNumber   String?
   orderId         String?  @unique
+  ticketEmailSent Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
