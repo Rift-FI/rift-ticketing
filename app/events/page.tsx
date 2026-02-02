@@ -106,7 +106,7 @@ export default function EventsPage() {
   return (
     <>
       <Navigation />
-      <div className="min-h-screen bg-[#E9F1F4]">
+      <div className="min-h-screen bg-[#E9F1F4] flex flex-col">
         <div className="bg-gradient-to-r from-[#2E8C96] to-[#2A7A84] text-white py-8 px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl font-bold mb-4">Discover Events</h1>
@@ -114,7 +114,7 @@ export default function EventsPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto py-8 px-4">
+      <div className="max-w-6xl mx-auto py-8 px-4 flex-1">
         <div className="flex justify-between items-center mb-8 gap-4">
           <div className="flex-1 relative" ref={searchRef}>
             <div className="relative">
