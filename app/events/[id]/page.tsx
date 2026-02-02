@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Calendar, MapPin, Users, Share2, Edit, Trash2, BarChart3 } from 'lucide-react';
+import { generateGoogleCalendarUrl } from '@/lib/calendar';
 
 interface Event {
   id: string;
@@ -600,11 +601,31 @@ export default function EventDetailsPage() {
                     )}
 
                     {paymentStatus === 'success' || hasRsvped ? (
-                      <Alert className="bg-[#adddc0] border-[#30a46c]">
-                        <AlertDescription className="text-[#30a46c]">
-                          ✅ Payment successful! Your RSVP is confirmed.
-                        </AlertDescription>
-                      </Alert>
+                      <div className="space-y-3">
+                        <Alert className="bg-[#adddc0] border-[#30a46c]">
+                          <AlertDescription className="text-[#30a46c]">
+                            ✅ Payment successful! Your RSVP is confirmed.
+                          </AlertDescription>
+                        </Alert>
+                        {event && (
+                          <Button
+                            onClick={() => {
+                              const calendarUrl = generateGoogleCalendarUrl({
+                                title: event.title,
+                                description: event.description,
+                                location: event.location,
+                                startDate: new Date(event.date),
+                              });
+                              window.open(calendarUrl, '_blank');
+                            }}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <Calendar className="w-4 h-4 mr-2" />
+                            Add to Google Calendar
+                          </Button>
+                        )}
+                      </div>
                     ) : paymentStatus === 'failed' ? (
                       <div className="space-y-3">
                         <Alert variant="destructive">

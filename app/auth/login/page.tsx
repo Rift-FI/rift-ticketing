@@ -19,12 +19,22 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     if (!externalId || !password) {
       setError('Email and password are required');
+      return;
+    }
+
+    if (!validateEmail(externalId)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -59,9 +69,9 @@ export default function LoginPage() {
             )}
             
             <div>
-              <label className="block text-sm font-medium mb-2">Email or Username</label>
+              <label className="block text-sm font-medium mb-2">Email</label>
               <Input
-                type="text"
+                type="email"
                 placeholder="john@example.com"
                 value={externalId}
                 onChange={(e) => setExternalId(e.target.value)}

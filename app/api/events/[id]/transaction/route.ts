@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getUserByToken } from '@/app/actions/auth';
 import rift from '@/lib/rift';
+import { sendEmail } from '@/lib/email';
 
 export async function POST(
   request: NextRequest,
@@ -341,6 +342,42 @@ export async function POST(
           where: { id: existingRsvp.id },
           data: { status: 'CONFIRMED' },
         });
+      }
+
+      // Send confirmation email
+      if (user.email) {
+        const event = await prisma.event.findUnique({
+          where: { id: eventId },
+        });
+        
+        if (event) {
+          const emailBody = `
+Dear ${user.name || user.externalId},
+
+Thank you for your payment! Your RSVP has been confirmed.
+
+Event Details:
+- Event: ${event.title}
+- Date: ${new Date(event.date).toLocaleDateString()}
+- Location: ${event.location}
+- Order ID: ${invoice.orderId || 'N/A'}
+
+Payment Information:
+${receiptNumber ? `- M-Pesa Receipt: ${receiptNumber}` : ''}
+${invoice.transactionCode && !receiptNumber ? `- Transaction Code: ${invoice.transactionCode}` : ''}
+
+We look forward to seeing you at the event!
+
+Best regards,
+Rift Finance Team
+          `.trim();
+
+          await sendEmail({
+            to: user.email,
+            subject: `RSVP Confirmed: ${event.title}`,
+            text: emailBody,
+          });
+        }
       }
 
       return NextResponse.json({

@@ -1,0 +1,2 @@
+Name,Email,User ID,Status,Payment Status,Amount,Currency,M-Pesa Receipt,Transaction Hash,RSVP Date,Payment Date
+"Karis","Karis@example.com","Karis","CONFIRMED","CONFIRMED","1.00","USDC","UB2D75S59D","b9527bab-ff50-4b11-9f2c-df6674014602","2/2/2026, 10:17:14 PM","2/2/2026, 10:16:34 PM"

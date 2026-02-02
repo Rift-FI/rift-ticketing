@@ -205,7 +205,7 @@ export default function MyRSVPsPage() {
                           <div>
                             <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
                               <Hash className="w-4 h-4" />
-                              Transaction Hash:
+                              Transaction Code:
                             </p>
                             {rsvp.transactionCode.startsWith('http') || rsvp.transactionCode.startsWith('https') ? (
                               <a

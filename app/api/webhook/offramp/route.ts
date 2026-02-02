@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,6 +64,36 @@ export async function POST(request: NextRequest) {
         await prisma.rSVP.update({
           where: { id: existingRsvp.id },
           data: { status: 'CONFIRMED' },
+        });
+      }
+
+      // Send confirmation email
+      if (invoice.user.email && invoice.event) {
+        const emailBody = `
+Dear ${invoice.user.name || invoice.user.externalId},
+
+Thank you for your payment! Your RSVP has been confirmed.
+
+Event Details:
+- Event: ${invoice.event.title}
+- Date: ${new Date(invoice.event.date).toLocaleDateString()}
+- Location: ${invoice.event.location}
+- Order ID: ${invoice.orderId || 'N/A'}
+
+Payment Information:
+${receipt_number ? `- M-Pesa Receipt: ${receipt_number}` : ''}
+${transaction_code && !receipt_number ? `- Transaction Code: ${transaction_code}` : ''}
+
+We look forward to seeing you at the event!
+
+Best regards,
+Rift Finance Team
+          `.trim();
+
+        await sendEmail({
+          to: invoice.user.email,
+          subject: `RSVP Confirmed: ${invoice.event.title}`,
+          text: emailBody,
         });
       }
 
