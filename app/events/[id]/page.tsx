@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
@@ -335,11 +336,13 @@ export default function EventDetailsPage() {
               <CardHeader>
                 {/* Event Image */}
                 {event.image && (
-                  <div className="mb-4 -mx-6 -mt-6">
-                    <img 
+                  <div className="mb-4 -mx-6 -mt-6 relative w-full h-64">
+                    <Image 
                       src={event.image} 
                       alt={event.title}
-                      className="w-full h-64 object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
                     />
                   </div>
                 )}
