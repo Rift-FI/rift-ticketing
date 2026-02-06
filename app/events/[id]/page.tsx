@@ -326,8 +326,8 @@ export default function EventDetailsPage() {
 
       const result = await response.json();
       
-      // If wallet payment was successful, RSVP is confirmed immediately
-      if (paymentMethod === 'wallet' && result.success) {
+      // If RSVP was successful (free event or wallet payment), confirm immediately
+      if (result.success && !result.paymentUrl) {
         setHasRsvped(true);
         setPaymentStatus('success');
         setError('');
@@ -337,7 +337,9 @@ export default function EventDetailsPage() {
         }
         // Refresh event details
         await fetchEventDetails();
-        await checkWalletBalance();
+        if (paymentMethod === 'wallet') {
+          await checkWalletBalance();
+        }
       } else if (result.paymentUrl) {
         // Invoice payment - show payment link
         setPaymentUrl(result.paymentUrl);
@@ -439,7 +441,7 @@ export default function EventDetailsPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="text-[#2E8C96] hover:text-[#2A7A84] mb-6"
+          className="text-[#C85D2E] hover:text-[#B84A1F] mb-6"
         >
           ← Back to Events
         </button>
@@ -465,12 +467,17 @@ export default function EventDetailsPage() {
                 <div className="px-6 pt-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <span className="text-xs font-semibold text-[#2E8C96] bg-[#E9F1F4] px-3 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-[#C85D2E] bg-[#E9F1F4] px-3 py-1 rounded-full">
                       {event.category}
                     </span>
                     {event.isOnline && (
-                      <span className="ml-2 text-xs font-semibold text-[#30a46c] bg-[#adddc0] px-3 py-1 rounded-full">
+                      <span className="ml-2 text-xs font-semibold text-[#D4A574] bg-[#E8D5B7] px-3 py-1 rounded-full">
                         Online Event
+                      </span>
+                    )}
+                    {(event.price === 0 || event.price <= 0) && (
+                      <span className="ml-2 text-xs font-semibold text-[#D4A574] bg-[#E8D5B7] px-3 py-1 rounded-full">
+                        Free Event
                       </span>
                     )}
                   </div>
@@ -602,7 +609,9 @@ export default function EventDetailsPage() {
                         <div>
                           <p className="text-sm text-gray-500">Price</p>
                           <p className="font-semibold text-lg">
-                            {eventPriceInKES !== null ? (
+                            {(event.price === 0 || event.price <= 0) ? (
+                              <span className="text-[#D4A574]">Free</span>
+                            ) : eventPriceInKES !== null ? (
                               <>
                                 KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 <span className="text-sm text-gray-500 ml-2">(≈ {event.price.toFixed(2)} USD)</span>
@@ -645,9 +654,18 @@ export default function EventDetailsPage() {
                 ) : (
                   <>
                     <div className="mb-4">
-                      {eventPriceInKES !== null ? (
+                      {(event.price === 0 || event.price <= 0) ? (
                         <>
-                          <p className="text-3xl font-bold text-[#2E8C96]">
+                          <p className="text-3xl font-bold text-[#D4A574]">
+                            Free
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            No payment required
+                          </p>
+                        </>
+                      ) : eventPriceInKES !== null ? (
+                        <>
+                          <p className="text-3xl font-bold text-[#C85D2E]">
                             KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                           <p className="text-sm text-gray-600">
@@ -663,7 +681,7 @@ export default function EventDetailsPage() {
 
                     <div className="mb-4 text-sm">
                       <p className="text-gray-600">
-                        <span className="font-semibold text-[#30a46c]">{spotsLeft}</span> spots available
+                        <span className="font-semibold text-[#D4A574]">{spotsLeft}</span> spots available
                       </p>
                     </div>
 
@@ -675,9 +693,9 @@ export default function EventDetailsPage() {
 
                     {paymentStatus === 'success' || hasRsvped ? (
                       <div className="space-y-3">
-                        <Alert className="bg-[#adddc0] border-[#30a46c]">
-                          <AlertDescription className="text-[#30a46c]">
-                            ✅ Payment successful! Your RSVP is confirmed.
+                        <Alert className="bg-[#E8D5B7] border-[#D4A574]">
+                          <AlertDescription className="text-[#D4A574]">
+                            You are attending this event.
                           </AlertDescription>
                         </Alert>
                         {emailSent && userEmail && (
@@ -763,14 +781,14 @@ export default function EventDetailsPage() {
                           </AlertDescription>
                         </Alert>
                         {walletBalance !== null && walletBalance >= event.price && (
-                          <div className="bg-[#adddc0] border border-[#30a46c] rounded-lg p-3 mb-3">
-                            <p className="text-sm text-[#30a46c] mb-2">
+                          <div className="bg-[#E8D5B7] border border-[#D4A574] rounded-lg p-3 mb-3">
+                            <p className="text-sm text-[#D4A574] mb-2">
                               💰 Wallet Balance: {walletBalance.toFixed(2)} USD
                             </p>
                             <Button
                               onClick={() => handleRsvp('wallet')}
                               disabled={isRsvping || !user}
-                              className="w-full bg-[#30a46c] hover:bg-[#2a8a5a] text-white"
+                              className="w-full bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0"
                               size="lg"
                             >
                               {isRsvping ? 'Processing...' : `Pay with Wallet (${event.price} USD)`}
@@ -814,7 +832,9 @@ export default function EventDetailsPage() {
                           className="w-full"
                           size="lg"
                         >
-                          {eventPriceInKES !== null ? (
+                          {(event.price === 0 || event.price <= 0) ? (
+                            <>Complete RSVP</>
+                          ) : eventPriceInKES !== null ? (
                             <>Pay KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Complete RSVP</>
                           ) : (
                             <>Pay {event.price.toFixed(2)} USD - Complete RSVP</>
@@ -826,9 +846,9 @@ export default function EventDetailsPage() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {walletBalance !== null && buyingRate && (
-                          <div className={`border rounded-lg p-3 mb-3 ${walletBalance >= eventPriceInUSDC ? 'bg-[#adddc0] border-[#30a46c]' : 'bg-[#ffffc4] border-[#ffd13f]'}`}>
-                            <p className={`text-sm mb-2 ${walletBalance >= eventPriceInUSDC ? 'text-[#30a46c]' : 'text-[#ffd13f]'}`}>
+                        {!(event.price === 0 || event.price <= 0) && walletBalance !== null && buyingRate && (
+                          <div className={`border rounded-lg p-3 mb-3 ${walletBalance >= eventPriceInUSDC ? 'bg-[#E8D5B7] border-[#D4A574]' : 'bg-[#ffffc4] border-[#ffd13f]'}`}>
+                            <p className={`text-sm mb-2 ${walletBalance >= eventPriceInUSDC ? 'text-[#D4A574]' : 'text-[#ffd13f]'}`}>
                               💰 Wallet Balance: {walletBalance.toFixed(2)} USD
                               {buyingRate && ` (KES ${(walletBalance * buyingRate).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`}
                             </p>
@@ -836,7 +856,7 @@ export default function EventDetailsPage() {
                               <Button
                                 onClick={() => handleRsvp('wallet')}
                                 disabled={isRsvping || !user}
-                                className="w-full bg-[#30a46c] hover:bg-[#2a8a5a] text-white"
+                                className="w-full bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0"
                                 size="lg"
                               >
                                 {isRsvping ? 'Processing...' : (
@@ -859,10 +879,14 @@ export default function EventDetailsPage() {
                           disabled={isRsvping || !user}
                           className="w-full"
                           size="lg"
-                          variant={walletBalance !== null && walletBalance >= eventPriceInUSDC ? "outline" : "default"}
+                          variant={!(event.price === 0 || event.price <= 0) && walletBalance !== null && walletBalance >= eventPriceInUSDC ? "outline" : "default"}
                         >
-                          {isRsvping ? 'Generating payment link...' : (
-                            eventPriceInKES !== null ? (
+                          {isRsvping ? (
+                            (event.price === 0 || event.price <= 0) ? 'Confirming RSVP...' : 'Generating payment link...'
+                          ) : (
+                            (event.price === 0 || event.price <= 0) ? (
+                              'RSVP for Free'
+                            ) : eventPriceInKES !== null ? (
                               `Checkout (KES ${eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
                             ) : (
                               `Checkout (${event.price.toFixed(2)} USD)`
@@ -876,7 +900,7 @@ export default function EventDetailsPage() {
                       <p className="text-xs text-gray-500 mt-2 text-center">
                         <button
                           onClick={() => router.push('/auth/login')}
-                          className="text-[#2E8C96] hover:underline"
+                          className="text-[#C85D2E] hover:underline"
                         >
                           Sign in
                         </button>

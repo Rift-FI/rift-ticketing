@@ -50,7 +50,7 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white">
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-[#C85D2E] to-[#D4A574] flex items-center justify-center text-white">
                     <span className="text-xl font-semibold">
                       {(user.name || user.externalId || 'U').charAt(0).toUpperCase()}
                     </span>

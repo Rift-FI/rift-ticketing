@@ -121,7 +121,7 @@ export default function CategoriesPage() {
           </div>
 
           {/* CTA Section */}
-          <div className="mt-16 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white text-center">
+          <div className="mt-16 rounded-lg bg-gradient-to-r from-[#C85D2E] to-[#D4A574] p-8 text-white text-center">
             <h2 className="text-2xl font-bold mb-4">
               Can't find what you're looking for?
             </h2>
@@ -129,7 +129,7 @@ export default function CategoriesPage() {
               Post your event or create a custom category
             </p>
             <Link href="/organizer/create">
-              <Button className="bg-white text-primary hover:bg-gray-100">
+              <Button className="bg-white text-[#C85D2E] hover:bg-gray-100">
                 Create Event
               </Button>
             </Link>

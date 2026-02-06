@@ -97,7 +97,7 @@ export default function DashboardPage() {
     return (
       <>
         <Navigation />
-        <main className="min-h-screen bg-slate-50 px-4 py-12">
+        <main className="min-h-screen bg-[#E9F1F4] px-4 py-12">
           <div className="mx-auto max-w-6xl">
             <div className="grid gap-4 md:grid-cols-3 mb-8">
               {[...Array(3)].map((_, i) => (
@@ -113,11 +113,11 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation />
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-[#E9F1F4]">
         <div className="mx-auto max-w-6xl px-4 py-12">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.externalId}!</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-[#1F2D3A]">Welcome, {user?.externalId}!</h1>
+            <p className="text-[#4A5568]">
               Here's your event booking overview
             </p>
           </div>
@@ -126,14 +126,14 @@ export default function DashboardPage() {
           <div className="grid gap-4 md:grid-cols-3 mb-8">
             <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-700">
+                <CardTitle className="text-sm font-medium text-[#1F2D3A]">
                   Total Tickets
                 </CardTitle>
-                <Tickets className="h-4 w-4 text-blue-600" />
+                <Tickets className="h-4 w-4 text-[#C85D2E]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stats.totalTickets}</div>
-                <p className="text-xs text-gray-500">
+                <div className="text-2xl font-bold text-[#1F2D3A]">{stats.totalTickets}</div>
+                <p className="text-xs text-[#4A5568]">
                   Bookings made
                 </p>
               </CardContent>
@@ -141,16 +141,16 @@ export default function DashboardPage() {
 
             <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-700">
+                <CardTitle className="text-sm font-medium text-[#1F2D3A]">
                   Total Spent
                 </CardTitle>
-                <TrendingUp className="h-4 w-4 text-blue-600" />
+                <TrendingUp className="h-4 w-4 text-[#C85D2E]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-[#1F2D3A]">
                   {stats.totalSpent} USD
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[#4A5568]">
                   Across all events
                 </p>
               </CardContent>
@@ -158,16 +158,16 @@ export default function DashboardPage() {
 
             <Card className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-700">
+                <CardTitle className="text-sm font-medium text-[#1F2D3A]">
                   RSVPs
                 </CardTitle>
-                <Calendar className="h-4 w-4 text-blue-600" />
+                <Calendar className="h-4 w-4 text-[#C85D2E]" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-[#1F2D3A]">
                   {stats.upcomingEvents}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[#4A5568]">
                   Active RSVPs
                 </p>
               </CardContent>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             {/* Chart */}
             <Card className="lg:col-span-2 bg-white">
               <CardHeader>
-                <CardTitle className="text-gray-900">RSVP Trend</CardTitle>
+                <CardTitle className="text-[#1F2D3A]">RSVP Trend</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="tickets" fill="#2563eb" />
+                    <Bar dataKey="tickets" fill="#C85D2E" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
             {/* Quick Actions */}
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-gray-900">Quick Actions</CardTitle>
+                <CardTitle className="text-[#1F2D3A]">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Link href="/events" className="block">
@@ -210,7 +210,7 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 <Link href="/events/create" className="block">
-                  <Button className="w-full bg-blue-600 text-white hover:bg-blue-700">
+                  <Button className="w-full bg-[#C85D2E] text-white hover:bg-[#B84A1F]">
                     Create Event
                   </Button>
                 </Link>
@@ -221,7 +221,7 @@ export default function DashboardPage() {
           {/* Recent RSVPs */}
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="text-gray-900">Your RSVPs</CardTitle>
+              <CardTitle className="text-[#1F2D3A]">Your RSVPs</CardTitle>
             </CardHeader>
             <CardContent>
               {tickets.length === 0 ? (
@@ -241,16 +241,16 @@ export default function DashboardPage() {
                       className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
                     >
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-[#1F2D3A]">
                           {ticket.eventTitle}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-[#4A5568]">
                           {ticket.date}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold text-gray-900">{ticket.price} USD</div>
-                        <div className="text-xs text-green-600 capitalize">
+                        <div className="font-semibold text-[#1F2D3A]">{ticket.price} USD</div>
+                        <div className="text-xs text-[#30a46c] capitalize">
                           {ticket.status}
                         </div>
                       </div>

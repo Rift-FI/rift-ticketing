@@ -147,14 +147,14 @@ export default function MyRSVPsPage() {
               const isUpcoming = eventDate > new Date();
 
               return (
-                <Card key={rsvp.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden border border-[#E9F1F4] hover:border-[#2E8C96]">
+                <Card key={rsvp.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden border border-[#E9F1F4] hover:border-[#C85D2E]">
                   {rsvp.event.image && (
-                    <div className="relative w-full h-72 overflow-hidden bg-gradient-to-br from-[#2E8C96] to-[#2A7A84]">
+                    <div className="relative w-full h-72 overflow-hidden bg-gradient-to-br from-[#C85D2E] to-[#D4A574]">
                       <Image src={rsvp.event.image} alt={rsvp.event.title} fill className="object-cover" />
                     </div>
                   )}
                   {!rsvp.event.image && (
-                    <div className="relative w-full h-64 rounded-t-lg overflow-hidden bg-gradient-to-br from-[#2E8C96] to-[#2A7A84] flex items-center justify-center">
+                    <div className="relative w-full h-64 rounded-t-lg overflow-hidden bg-gradient-to-br from-[#C85D2E] to-[#D4A574] flex items-center justify-center">
                       <Calendar className="h-16 w-16 text-white/20" />
                     </div>
                   )}

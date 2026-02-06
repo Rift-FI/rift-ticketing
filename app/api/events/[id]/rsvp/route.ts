@@ -63,6 +63,89 @@ export async function POST(
       return NextResponse.json({ error: 'Event is full' }, { status: 400 });
     }
 
+    // Check if event is free (price === 0)
+    const isFreeEvent = event.price === 0 || event.price <= 0;
+
+    // For free events, skip payment and directly create RSVP
+    if (isFreeEvent) {
+      // Create or update RSVP
+      const rsvp = await prisma.rSVP.upsert({
+        where: {
+          userId_eventId: {
+            userId: user.id,
+            eventId: eventId,
+          },
+        },
+        update: {
+          status: 'CONFIRMED',
+        },
+        create: {
+          userId: user.id,
+          eventId: eventId,
+          status: 'CONFIRMED',
+        },
+      });
+
+      // Create invoice record with 0 amount for free events
+      await prisma.invoice.create({
+        data: {
+          userId: user.id,
+          eventId: eventId,
+          amount: 0,
+          currency: 'USDC',
+          chain: 'BASE',
+          status: 'CONFIRMED',
+          orderId: `free-event-${eventId}-${user.id}`,
+        },
+      });
+
+      // Send confirmation email
+      let emailSent = false;
+      if (user.email) {
+        const eventDate = new Date(event.date);
+        const formattedDate = eventDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric'
+        });
+        const formattedTime = eventDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        const emailHtml = createPaymentConfirmationEmail({
+          userName: user.name || user.externalId.split('@')[0],
+          eventTitle: event.title,
+          eventDate: formattedDate,
+          eventTime: formattedTime,
+          eventLocation: event.location,
+          isOnline: event.isOnline,
+        });
+
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: `RSVP Confirmed: ${event.title}`,
+            html: emailHtml,
+          });
+          emailSent = true;
+          console.log(`Confirmation email sent to ${user.email} for free event ${event.title}`);
+        } catch (emailError) {
+          console.error('Error sending confirmation email:', emailError);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'RSVP confirmed for free event',
+        rsvp,
+        emailSent: emailSent,
+        userEmail: user.email || null,
+      });
+    }
+
     // Check if there's already a pending invoice for this user/event
     const existingInvoice = await prisma.invoice.findFirst({
       where: {

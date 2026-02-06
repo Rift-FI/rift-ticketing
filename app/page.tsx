@@ -29,33 +29,33 @@ function FAQSection() {
 
   const faqs = [
     {
-      question: 'How do I create an event?',
-      answer: 'Click "Create Event" in the navigation, fill in your event details (title, description, date, location, price, capacity), upload an image, and publish. It takes less than 2 minutes!',
+      question: 'How do I create and publish an event?',
+      answer: 'Navigate to "Create Event" from the main menu, complete the event information form including title, description, date, venue, pricing, and capacity. Upload a high-quality image and publish. Your event will be live within seconds.',
       icon: Calendar,
     },
     {
-      question: 'What payment methods do you accept?',
-      answer: 'Attendees can pay using M-Pesa (for local payments) or USDC (crypto payments). Both methods are supported and processed instantly.',
+      question: 'What payment methods are supported?',
+      answer: 'We support M-Pesa for local mobile money transactions and USDC for cryptocurrency payments. Both payment methods are processed securely and provide instant confirmation.',
       icon: DollarSign,
     },
     {
-      question: 'How do I withdraw my earnings?',
-      answer: 'All payments go directly to your Rift wallet. You can withdraw funds instantly to your connected wallet—no waiting periods or holds.',
+      question: 'How do I access my event revenue?',
+      answer: 'All ticket sales are automatically deposited into your Hafla wallet. You can withdraw funds at any time to your connected wallet address with no waiting periods or minimum thresholds.',
       icon: Wallet,
     },
     {
-      question: 'Is there a fee for using Rift?',
-      answer: 'Rift is free to use for creating and discovering events. Payment processing fees may apply depending on the payment method chosen by attendees.',
+      question: 'What are the platform fees?',
+      answer: 'Event creation and discovery are completely free. Standard payment processing fees apply based on the payment method selected by attendees, with transparent pricing displayed at checkout.',
       icon: HelpCircle,
     },
     {
-      question: 'Can I share my event on social media?',
-      answer: 'Yes! Every event gets a unique shareable link optimized for WhatsApp, Telegram, Twitter/X, Facebook, and LinkedIn. Share directly from the event page.',
+      question: 'How can I promote my event?',
+      answer: 'Each event includes a unique, shareable link optimized for all major social platforms including WhatsApp, Telegram, Twitter/X, Facebook, and LinkedIn. Share directly from your event management dashboard.',
       icon: Globe,
     },
     {
-      question: 'How do attendees receive their tickets?',
-      answer: 'After payment, attendees receive instant email confirmation with their ticket details. They can also request a ticket email to be sent at any time from the event page.',
+      question: 'How are tickets delivered to attendees?',
+      answer: 'Attendees receive an automated email confirmation immediately after successful payment, containing their ticket details and event information. Tickets can be re-sent on-demand from the event page.',
       icon: CheckCircle,
     },
   ];
@@ -80,8 +80,8 @@ function FAQSection() {
             >
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2E8C96]/10">
-                    <Icon className="h-5 w-5 text-[#2E8C96]" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#C85D2E]/10">
+                    <Icon className="h-5 w-5 text-[#C85D2E]" />
                   </div>
                 </div>
                 <h3 className="font-semibold text-[#1F2D3A] flex-1">{faq.question}</h3>
@@ -152,13 +152,15 @@ export default function HomePage() {
   };
 
   return (
-    <>
+    <div className="relative min-h-screen">
       <Navigation />
-      <main className="min-h-screen bg-[#E9F1F4] flex flex-col">
-        {/* Hero */}
+      {/* Hero - extends behind navbar */}
+      <div className="absolute inset-0 z-0">
         <HeroSection />
+      </div>
+      <main className="relative z-10 flex flex-col pt-[90vh]">
 
-        {/* Why Rift */}
+        {/* Why Hafla */}
         <motion.section
           className="px-4 py-20 sm:px-6 lg:px-8 bg-white"
           initial={{ opacity: 0, y: 40 }}
@@ -168,57 +170,71 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why organizers choose Rift</h2>
+              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why choose Hafla</h2>
               <p className="text-sm sm:text-base text-[#4A5568]">
-                A modern ticketing platform that makes event creation and payment collection simple.
+                A comprehensive platform designed to connect you with events that enrich your life and expand your community.
               </p>
             </div>
-            <div className="grid gap-6 md:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-3">
               <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6 hover:-translate-y-1 hover:shadow-lg transition-all"
+                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
                 whileHover={{ y: -6 }}
               >
-                <div className="h-32 mb-4 flex items-center justify-center">
-                  <EventCreationIllustration />
+                <div className="relative h-48 w-full">
+                  <Image
+                    src="/africa0.jpeg"
+                    alt="Discover events"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
-                <h3 className="font-semibold mb-2 text-[#1F2D3A]">Set up in minutes</h3>
-                <p className="text-sm text-[#4A5568]">
-                  Publish events, define capacity and pricing, and start selling tickets—no custom dev required.
-                </p>
+                <div className="p-6">
+                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Curated event discovery</h3>
+                  <p className="text-sm text-[#4A5568]">
+                    Explore a diverse range of events filtered by category, location, and date. Find experiences tailored to your interests.
+                  </p>
+                </div>
               </motion.div>
               <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6 hover:-translate-y-1 hover:shadow-lg transition-all"
+                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
                 whileHover={{ y: -6 }}
               >
-                <div className="h-32 mb-4 flex items-center justify-center">
-                  <SharingIllustration />
+                <div className="relative h-48 w-full">
+                  <Image
+                    src="/africa4.jpeg"
+                    alt="Instant booking"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
-                <h3 className="font-semibold mb-2 text-[#1F2D3A]">Viral sharing</h3>
-                <p className="text-sm text-[#4A5568]">
-                  Shareable links, optimized for WhatsApp, Telegram, and X—engineered for word‑of‑mouth growth.
-                </p>
+                <div className="p-6">
+                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Seamless booking experience</h3>
+                  <p className="text-sm text-[#4A5568]">
+                    Reserve your spot in seconds. Receive immediate confirmation and digital tickets via email.
+                  </p>
+                </div>
               </motion.div>
               <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6 hover:-translate-y-1 hover:shadow-lg transition-all"
+                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
                 whileHover={{ y: -6 }}
               >
-                <div className="h-32 mb-4 flex items-center justify-center">
-                  <PaymentIllustration />
+                <div className="relative h-48 w-full">
+                  <Image
+                    src="/africaimage1.jpeg"
+                    alt="Secure payments"
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
-                <h3 className="font-semibold mb-2 text-[#1F2D3A]">Flexible payments</h3>
-                <p className="text-sm text-[#4A5568]">
-                  Accept M-Pesa and USDC payments. Withdraw directly to your wallet with instant settlement.
-                </p>
-              </motion.div>
-              <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6 hover:-translate-y-1 hover:shadow-lg transition-all"
-                whileHover={{ y: -6 }}
-              >
-                <Search className="h-8 w-8 mb-4 text-[#2E8C96]" />
-                <h3 className="font-semibold mb-2 text-[#1F2D3A]">Smart discovery</h3>
-                <p className="text-sm text-[#4A5568]">
-                  Curated feeds by category, price, and location so the right attendees find your events.
-                </p>
+                <div className="p-6">
+                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Enterprise-grade security</h3>
+                  <p className="text-sm text-[#4A5568]">
+                    Your data is protected with industry-leading security measures. Your information remains secure and private at all times.
+                  </p>
+                </div>
               </motion.div>
             </div>
           </div>
@@ -237,11 +253,11 @@ export default function HomePage() {
               <div>
                 <h2 className="text-3xl font-bold text-[#1F2D3A]">Featured events</h2>
                 <p className="text-sm text-[#4A5568] mt-1">
-                  Discover amazing events happening near you. Book tickets in just a few taps.
+                  Handpicked events from our community. Reserve your spot with a single tap.
                 </p>
               </div>
               <Link href="/events">
-                <Button variant="outline" className="border-[#2E8C96] text-[#2E8C96] hover:bg-[#2E8C96] hover:text-white">
+                <Button variant="outline" className="border-[#C85D2E] text-[#C85D2E] hover:bg-[#C85D2E] hover:text-white">
                   View all events
                 </Button>
               </Link>
@@ -270,7 +286,7 @@ export default function HomePage() {
                       whileHover={{ y: -6 }}
                     >
                       <Link href={`/events/${event.id}`}>
-                        <div className="group overflow-hidden rounded-2xl border border-[#E9F1F4] bg-white transition-all hover:shadow-xl hover:border-[#2E8C96] h-full flex flex-col">
+                        <div className="group overflow-hidden rounded-2xl border border-[#E9F1F4] bg-white transition-all hover:shadow-xl hover:border-[#C85D2E] h-full flex flex-col">
                           {event.image ? (
                             <div className="relative h-44 w-full overflow-hidden">
                               <Image
@@ -280,8 +296,8 @@ export default function HomePage() {
                                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                               />
                               <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center gap-2">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#2E8C96]">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#30a46c]" />
+                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#C85D2E]">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4A574]" />
                                   {event.category}
                                 </div>
                                 <div className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white">
@@ -290,13 +306,13 @@ export default function HomePage() {
                               </div>
                             </div>
                           ) : (
-                            <div className="relative h-44 w-full overflow-hidden bg-gradient-to-r from-[#2E8C96] to-[#2A7A84]">
+                              <div className="relative h-44 w-full overflow-hidden bg-gradient-to-r from-[#C85D2E] to-[#D4A574]">
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <Calendar className="h-12 w-12 text-white/30" />
                               </div>
                               <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center gap-2">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#2E8C96]">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#30a46c]" />
+                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#C85D2E]">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4A574]" />
                                   {event.category}
                                 </div>
                                 <div className="rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">
@@ -306,7 +322,7 @@ export default function HomePage() {
                             </div>
                           )}
                           <div className="p-4 flex flex-col flex-1 space-y-2">
-                            <h3 className="font-semibold line-clamp-2 group-hover:text-[#2E8C96] transition-colors text-[#1F2D3A]">
+                            <h3 className="font-semibold line-clamp-2 group-hover:text-[#C85D2E] transition-colors text-[#1F2D3A]">
                               {event.title}
                             </h3>
                             <p className="text-xs text-[#4A5568] line-clamp-2 flex-1">
@@ -314,7 +330,7 @@ export default function HomePage() {
                             </p>
                             <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#E9F1F4]">
                               {/* Price is stored in USD, convert to KES for display */}
-                              <div className="text-sm font-semibold text-[#2E8C96]">
+                              <div className="text-sm font-semibold text-[#C85D2E]">
                                 {sellingRate ? (
                                   <>
                                     KES{' '}
@@ -349,7 +365,7 @@ export default function HomePage() {
           </div>
         </motion.section>
 
-        {/* How It Works - Organizers */}
+        {/* How It Works */}
         <motion.section
           className="px-4 py-20 sm:px-6 lg:px-8 bg-white"
           initial={{ opacity: 0, y: 40 }}
@@ -359,52 +375,58 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">How it works for organizers</h2>
+              <h2 className="text-3xl font-bold text-[#1F2D3A]">How it works</h2>
               <p className="text-sm sm:text-base text-[#4A5568]">
-                Get started in three simple steps. Create, share, and get paid—all in one platform.
+                Find and book events in three simple steps. Browse, book, and attend—it's that easy.
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="h-64 lg:h-80">
-                <HowItWorksOrganizerIllustration />
+              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+                <Image
+                  src="/africa0.jpeg"
+                  alt="Browse events"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
               <div className="space-y-6">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E8C96]/10">
-                      <Calendar className="h-6 w-6 text-[#2E8C96]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10">
+                      <Search className="h-6 w-6 text-[#C85D2E]" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Create your event</h3>
+                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Browse events</h3>
                     <p className="text-sm text-[#4A5568]">
-                      Set up your event details, pricing, capacity, and upload images. No technical knowledge required.
+                      Explore events by category, location, and date. Find exactly what you're looking for.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2A7A84]/10">
-                      <Users className="h-6 w-6 text-[#2A7A84]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10">
+                      <Calendar className="h-6 w-6 text-[#D4A574]" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Share with your audience</h3>
+                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Book your ticket</h3>
                     <p className="text-sm text-[#4A5568]">
-                      Get a unique shareable link optimized for WhatsApp, Telegram, and social media. Spread the word easily.
+                      Pay with M-Pesa or USDC. Get instant confirmation and email tickets delivered to your inbox.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30a46c]/10">
-                      <Wallet className="h-6 w-6 text-[#30a46c]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10">
+                      <CheckCircle className="h-6 w-6 text-[#D97706]" />
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Collect payments & withdraw</h3>
+                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Attend & enjoy</h3>
                     <p className="text-sm text-[#4A5568]">
-                      Accept M-Pesa and USDC payments. Withdraw funds directly to your wallet instantly—no waiting periods.
+                      Show up and have an amazing time. Your ticket is stored securely and accessible anytime.
                     </p>
                   </div>
                 </div>
@@ -423,7 +445,7 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why attendees love Rift</h2>
+              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why attendees love Hafla</h2>
               <p className="text-sm sm:text-base text-[#4A5568]">
                 A seamless experience from discovery to attendance. Pay how you want, get instant confirmation.
               </p>
@@ -432,8 +454,8 @@ export default function HomePage() {
               <div className="space-y-6">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E8C96]/10">
-                      <Search className="h-6 w-6 text-[#2E8C96]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10">
+                      <Search className="h-6 w-6 text-[#C85D2E]" />
                     </div>
                   </div>
                   <div>
@@ -445,8 +467,8 @@ export default function HomePage() {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2A7A84]/10">
-                      <Smartphone className="h-6 w-6 text-[#2A7A84]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10">
+                      <Smartphone className="h-6 w-6 text-[#D4A574]" />
                     </div>
                   </div>
                   <div>
@@ -458,8 +480,8 @@ export default function HomePage() {
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30a46c]/10">
-                      <CheckCircle className="h-6 w-6 text-[#30a46c]" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10">
+                      <CheckCircle className="h-6 w-6 text-[#D97706]" />
                     </div>
                   </div>
                   <div>
@@ -470,8 +492,14 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              <div className="h-64 lg:h-80">
-                <BenefitsAttendeeIllustration />
+              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+                <Image
+                  src="/africa4.jpeg"
+                  alt="Event experience"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
             </div>
           </div>
@@ -493,13 +521,19 @@ export default function HomePage() {
               </p>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="h-64 lg:h-80">
-                <SecurityIllustration />
+              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
+                <Image
+                  src="/africaimage1.jpeg"
+                  alt="Secure platform"
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E8C96]/10 mb-4">
-                    <Shield className="h-6 w-6 text-[#2E8C96]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10 mb-4">
+                    <Shield className="h-6 w-6 text-[#C85D2E]" />
                   </div>
                   <h3 className="font-semibold text-[#1F2D3A] mb-2">Secure payments</h3>
                   <p className="text-sm text-[#4A5568]">
@@ -507,8 +541,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2A7A84]/10 mb-4">
-                    <Lock className="h-6 w-6 text-[#2A7A84]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10 mb-4">
+                    <Lock className="h-6 w-6 text-[#D4A574]" />
                   </div>
                   <h3 className="font-semibold text-[#1F2D3A] mb-2">Data protection</h3>
                   <p className="text-sm text-[#4A5568]">
@@ -516,8 +550,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#30a46c]/10 mb-4">
-                    <Clock className="h-6 w-6 text-[#30a46c]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10 mb-4">
+                    <Clock className="h-6 w-6 text-[#D97706]" />
                   </div>
                   <h3 className="font-semibold text-[#1F2D3A] mb-2">Instant settlement</h3>
                   <p className="text-sm text-[#4A5568]">
@@ -525,8 +559,8 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#2E8C96]/10 mb-4">
-                    <Globe className="h-6 w-6 text-[#2E8C96]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10 mb-4">
+                    <Globe className="h-6 w-6 text-[#C85D2E]" />
                   </div>
                   <h3 className="font-semibold text-[#1F2D3A] mb-2">Global reach</h3>
                   <p className="text-sm text-[#4A5568]">
@@ -550,61 +584,15 @@ export default function HomePage() {
             <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
               <h2 className="text-3xl font-bold text-[#1F2D3A]">Frequently asked questions</h2>
               <p className="text-sm sm:text-base text-[#4A5568]">
-                Everything you need to know about using Rift for your events.
+                Everything you need to know about using Hafla for your events.
               </p>
             </div>
             <FAQSection />
           </div>
         </motion.section>
 
-        {/* CTA Section */}
-        <motion.section
-          className="relative px-4 py-20 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-[#2E8C96] via-[#2A7A84] to-[#2E8C96]"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            {/* Left Side - Illustration */}
-            <div className="relative h-[300px] sm:h-[350px] lg:h-[400px] order-2 lg:order-1 flex items-center justify-center">
-              <div className="relative w-full h-full max-w-md">
-                <CommunityIllustration />
-              </div>
-            </div>
-
-            {/* Right Side - Content */}
-            <div className="text-center lg:text-left text-white space-y-6 order-1 lg:order-2">
-              <div className="inline-block">
-                <span className="text-sm font-semibold bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  🎯 Ready to Get Started?
-                </span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-                Join the Rift Community
-              </h2>
-              <p className="text-lg sm:text-xl opacity-90 max-w-xl mx-auto lg:mx-0">
-                Browse amazing events or create your own. Join Rift to discover and organize unforgettable experiences.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-                <Link href="/events">
-                  <Button size="lg" className="w-full sm:w-auto bg-white text-[#2E8C96] hover:bg-[#F8F9FA] shadow-lg hover:shadow-xl transition-all">
-                    🎫 Browse Events
-                  </Button>
-                </Link>
-                <Link href={user ? '/events/create' : '/auth/signup'}>
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 text-white border-2 border-white/30 hover:bg-white/20 backdrop-blur-sm">
-                    {user ? '✨ Create Event' : '🚀 Become an Organizer'}
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-          </div>
-        </motion.section>
         <Footer />
-    </main>
-    </>
+      </main>
+    </div>
   );
 }

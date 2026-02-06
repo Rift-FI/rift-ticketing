@@ -62,8 +62,8 @@ export default function CreateEventPage() {
         <Navigation />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C85D2E] mx-auto"></div>
+            <p className="mt-4 text-[#4A5568]">Loading...</p>
           </div>
         </div>
       </>
@@ -122,7 +122,7 @@ export default function CreateEventPage() {
     e.preventDefault();
     setError('');
 
-    if (!formData.title || !formData.description || !formData.date || !formData.price || !formData.capacity) {
+    if (!formData.title || !formData.description || !formData.date || formData.price === '' || formData.price === null || formData.price === undefined || !formData.capacity) {
       setError('Please fill in all required fields');
       return;
     }
@@ -221,7 +221,7 @@ export default function CreateEventPage() {
                   accept="image/*"
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[#E9F1F4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C85D2E]"
                 />
                 {imagePreview && (
                   <div className="mt-2">
@@ -237,7 +237,7 @@ export default function CreateEventPage() {
                   placeholder="Tell people about your event..."
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[#E9F1F4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C85D2E]"
                   rows={4}
                   disabled={isSubmitting}
                 />
@@ -305,12 +305,17 @@ export default function CreateEventPage() {
                     onChange={handleChange}
                     disabled={isSubmitting}
                     step="1"
+                    min="0"
                   />
-                  {formData.price && sellingRate && (
-                    <p className="text-xs text-gray-500 mt-1">
+                  {formData.price && parseFloat(formData.price) === 0 ? (
+                    <p className="text-xs text-[#30a46c] font-semibold mt-1">
+                      ✓ Free Event - No payment required
+                    </p>
+                  ) : formData.price && sellingRate && parseFloat(formData.price) > 0 ? (
+                    <p className="text-xs text-[#4A5568] mt-1">
                       ≈ {(parseFloat(formData.price) / sellingRate).toFixed(2)} USD (using selling rate)
                     </p>
-                  )}
+                  ) : null}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Capacity*</label>
@@ -332,7 +337,7 @@ export default function CreateEventPage() {
                   value={formData.category}
                   onChange={handleChange}
                   disabled={isSubmitting}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-[#E9F1F4] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C85D2E]"
                 >
                   <option value="TECH">Tech</option>
                   <option value="ENTERTAINMENT">Entertainment</option>

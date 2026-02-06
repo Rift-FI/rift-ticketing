@@ -114,25 +114,18 @@ export default function EventsPage() {
     <>
       <Navigation />
       <div className="min-h-screen bg-[#E9F1F4] flex flex-col">
-        <div className="bg-gradient-to-r from-[#2E8C96] to-[#2A7A84] text-white py-8 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Discover Events</h1>
-          <p className="text-white/90">Browse and RSVP to amazing events</p>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto py-8 px-4 flex-1">
-        <div className="flex justify-between items-center mb-8 gap-4">
-          <div className="flex-1 relative" ref={searchRef}>
+      <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 py-6 sm:py-8 flex-1">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8 max-w-[1600px] mx-auto">
+          <div className="w-full sm:w-auto sm:flex-1 max-w-2xl relative" ref={searchRef}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#4A5568]" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#4A5568]" />
               <Input
                 type="text"
                 placeholder="Search events..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onFocus={() => search && setShowSearchDropdown(true)}
-                className="max-w-md pl-10"
+                className="w-full pl-12 pr-4 py-6 text-base border-2 border-[#E9F1F4] focus:border-[#C85D2E] rounded-xl bg-white shadow-sm hover:shadow-md transition-all"
               />
             </div>
             {/* Search Dropdown */}
@@ -158,7 +151,7 @@ export default function EventsPage() {
                     <Link
                       href={`/events?search=${encodeURIComponent(search)}`}
                       onClick={() => setShowSearchDropdown(false)}
-                      className="text-sm text-[#2E8C96] hover:underline"
+                      className="text-sm text-[#C85D2E] hover:underline"
                     >
                       View all {filteredEvents.length} results
                     </Link>
@@ -169,20 +162,22 @@ export default function EventsPage() {
           </div>
           {user && (
             <Link href="/events/create">
-              <Button>Create Event</Button>
+              <Button className="bg-[#C85D2E] hover:bg-[#B84A1F] text-white px-6 py-6 rounded-xl shadow-sm">
+                Create Event
+              </Button>
             </Link>
           )}
         </div>
 
-        <div className="flex gap-2 mb-8 flex-wrap">
+        <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 flex-wrap justify-center max-w-[1600px] mx-auto px-2">
           {['ALL', 'TECH', 'ENTERTAINMENT', 'SPORTS', 'ARTS', 'BUSINESS', 'EDUCATION'].map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-                  className={`px-4 py-2 rounded-full transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-full transition-colors font-medium ${
                 category === cat
-                  ? 'bg-[#2E8C96] text-white hover:bg-[#2A7A84]'
-                  : 'bg-white text-[#1F2D3A] border border-[#E9F1F4] hover:border-[#2E8C96]'
+                  ? 'bg-[#C85D2E] text-white hover:bg-[#B84A1F]'
+                  : 'bg-white text-[#1F2D3A] border border-[#E9F1F4] hover:border-[#C85D2E]'
               }`}
             >
               {cat}
@@ -204,7 +199,7 @@ export default function EventsPage() {
               <p className="text-sm text-[#4A5568] mb-4">Try adjusting your search or filters</p>
               {user && (
                 <Link href="/events/create">
-                  <Button className="bg-[#2E8C96] hover:bg-[#2A7A84] text-white">
+                  <Button className="bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0">
                     Create Your First Event
                   </Button>
                 </Link>
@@ -212,7 +207,7 @@ export default function EventsPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-6 max-w-[1600px] mx-auto">
             {filteredEvents.map(event => {
               const eventDate = new Date(event.date);
               const confirmedRsvpsCount = event.rsvps.filter(r => r.status === 'CONFIRMED').length;
@@ -223,10 +218,10 @@ export default function EventsPage() {
               return (
                 <Card
                   key={event.id}
-                  className="flex h-full flex-col hover:shadow-xl transition-all duration-300 overflow-hidden border border-[#E9F1F4] hover:border-[#2E8C96] group p-0"
+                  className="flex h-full flex-col hover:shadow-xl transition-all duration-300 overflow-hidden border border-[#E9F1F4] hover:border-[#C85D2E] group p-0 w-full sm:w-[calc(50%-12px)] md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[calc(25%-18px)] max-w-sm min-h-[580px] sm:min-h-[600px]"
                 >
                   {event.image && (
-                    <div className="relative w-full h-56 overflow-hidden bg-gradient-to-br from-[#2E8C96] to-[#2A7A84]">
+                    <div className="relative w-full h-56 overflow-hidden bg-gradient-to-br from-[#C85D2E] to-[#D4A574]">
                       <Image 
                         src={event.image} 
                         alt={event.title} 
@@ -234,11 +229,11 @@ export default function EventsPage() {
                         className="object-cover group-hover:scale-105 transition-transform duration-300" 
                       />
                       <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-                        <span className="text-xs font-semibold text-white bg-[#2E8C96]/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-white bg-[#C85D2E]/90 backdrop-blur-sm px-3 py-1 rounded-full">
                           {event.category}
                         </span>
                         {event.isOnline && (
-                          <span className="text-xs font-semibold text-white bg-[#30a46c]/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="text-xs font-semibold text-white bg-[#D4A574]/90 backdrop-blur-sm px-3 py-1 rounded-full">
                             Online
                           </span>
                         )}
@@ -248,11 +243,11 @@ export default function EventsPage() {
                   {!event.image && (
                     <div className="relative w-full h-56 overflow-hidden bg-gradient-to-br from-[#2E8C96] to-[#2A7A84] flex items-center justify-center">
                       <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-                        <span className="text-xs font-semibold text-white bg-[#2E8C96]/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-white bg-[#C85D2E]/90 backdrop-blur-sm px-3 py-1 rounded-full">
                           {event.category}
                         </span>
                         {event.isOnline && (
-                          <span className="text-xs font-semibold text-white bg-[#30a46c]/90 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <span className="text-xs font-semibold text-white bg-[#D4A574]/90 backdrop-blur-sm px-3 py-1 rounded-full">
                             Online
                           </span>
                         )}
@@ -261,45 +256,47 @@ export default function EventsPage() {
                     </div>
                   )}
                   <CardHeader className="pb-3 px-6 pt-6">
-                    <CardTitle className="line-clamp-2 text-xl mb-2 group-hover:text-[#2E8C96] transition-colors">
+                    <CardTitle className="line-clamp-2 text-xl mb-2 group-hover:text-[#C85D2E] transition-colors">
                       {event.title}
                     </CardTitle>
                     <CardDescription className="line-clamp-2 text-sm text-gray-600">
                       {event.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex flex-1 flex-col justify-between space-y-4 pt-0 px-6 pb-6">
-                    <div className="space-y-2.5 text-sm">
+                  <CardContent className="flex flex-1 flex-col pt-0 px-6 pb-6">
+                    <div className="space-y-2.5 text-sm flex-grow">
                       <div className="flex items-center gap-2 text-gray-700">
-                        <Calendar className="w-4 h-4 text-[#2E8C96]" />
+                        <Calendar className="w-4 h-4 text-[#C85D2E]" />
                         <span>{eventDate.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
                       </div>
                       {!event.isOnline && (
                         <div className="flex items-center gap-2 text-gray-700">
-                          <MapPin className="w-4 h-4 text-[#2E8C96]" />
+                          <MapPin className="w-4 h-4 text-[#C85D2E]" />
                           <span className="line-clamp-1">{event.location}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2 text-gray-700">
-                        <Users className="w-4 h-4 text-[#2E8C96]" />
+                        <Users className="w-4 h-4 text-[#C85D2E]" />
                         <span>{confirmedRsvpsCount} / {event.capacity} attendees</span>
                         <span className="text-xs text-gray-500">({spotsLeft} left)</span>
                       </div>
                       <div className="flex items-center gap-2 text-gray-700 font-semibold">
-                        {eventPriceInKES !== null ? (
+                        {(event.price === 0 || event.price <= 0) ? (
+                          <span className="text-[#D4A574]">Free</span>
+                        ) : eventPriceInKES !== null ? (
                           <>
-                            <span className="text-[#2E8C96]">KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-[#C85D2E]">KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             <span className="text-xs text-gray-500 font-normal">(≈ {event.price.toFixed(2)} USD)</span>
                           </>
                         ) : (
-                          <span className="text-[#2E8C96]">{event.price.toFixed(2)} USD</span>
+                          <span className="text-[#C85D2E]">{event.price.toFixed(2)} USD</span>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 pt-2 border-t border-[#E9F1F4]">
+                    <div className="flex gap-2 pt-4 mt-auto border-t border-[#E9F1F4]">
                       <Link href={`/events/${event.id}`} className="flex-1">
-                        <Button className="w-full bg-[#2E8C96] hover:bg-[#2A7A84] text-white">
+                        <Button className="w-full bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0">
                           View Details
                         </Button>
                       </Link>
@@ -308,7 +305,7 @@ export default function EventsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-[#2E8C96] text-[#2E8C96] hover:bg-[#2E8C96] hover:text-white"
+                            className="border-[#C85D2E] text-[#C85D2E] hover:bg-[#C85D2E] hover:text-white"
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>

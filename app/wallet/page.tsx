@@ -186,10 +186,10 @@ export default function WalletPage() {
     return (
       <>
         <Navigation />
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="min-h-screen bg-[#E9F1F4] flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2E8C96] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading wallet...</p>
+            <p className="mt-4 text-[#4A5568]">Loading wallet...</p>
           </div>
         </div>
       </>
@@ -216,25 +216,25 @@ export default function WalletPage() {
               )}
 
               {/* Balance Display */}
-              <div className="bg-gradient-to-r from-[#E9F1F4] to-[#e2dffe] p-6 rounded-lg">
-                <div className="text-sm text-gray-600 mb-2">Wallet Balance</div>
+              <div className="bg-gradient-to-r from-[#E9F1F4] to-[#E8D5B7] p-6 rounded-lg">
+                <div className="text-sm text-[#4A5568] mb-2">Wallet Balance</div>
                 {balanceInKES !== null && buyingRate !== null ? (
                   <>
-                    <div className="text-4xl font-bold text-[#2E8C96] mb-1">
+                    <div className="text-4xl font-bold text-[#C85D2E] mb-1">
                       KES {balanceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
-                    <div className="text-lg text-gray-600 mt-2">
+                    <div className="text-lg text-[#4A5568] mt-2">
                       ≈ {balance !== null ? balance.toFixed(2) : '0.00'} USD
-                      <span className="text-sm text-gray-500 ml-2">(Rate: {buyingRate.toFixed(2)})</span>
+                      <span className="text-sm text-[#4A5568] ml-2">(Rate: {buyingRate.toFixed(2)})</span>
                     </div>
                   </>
                 ) : (
-                  <div className="text-4xl font-bold text-blue-600 mb-1">
+                  <div className="text-4xl font-bold text-[#C85D2E] mb-1">
                     {balance !== null ? balance.toFixed(2) : '0.00'} USD
                   </div>
                 )}
                 {walletAddress && (
-                  <div className="text-xs text-gray-500 mt-3 font-mono break-all">
+                  <div className="text-xs text-[#4A5568] mt-3 font-mono break-all">
                     {walletAddress}
                   </div>
                 )}
@@ -284,11 +284,11 @@ export default function WalletPage() {
                         min="0"
                       />
                       {topupAmount && sellingRate && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-[#4A5568] mt-1">
                           ≈ {((parseFloat(topupAmount) / sellingRate)).toFixed(2)} USD (using selling rate)
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[#4A5568] mt-1">
                         Enter amount in Kenyan Shillings (KES)
                       </p>
                     </div>
@@ -300,7 +300,7 @@ export default function WalletPage() {
                         value={topupPhone}
                         onChange={(e) => setTopupPhone(e.target.value)}
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[#4A5568] mt-1">
                         Enter your Safaricom M-Pesa number
                       </p>
                     </div>
@@ -308,7 +308,7 @@ export default function WalletPage() {
                       <Button
                         onClick={handleTopup}
                         disabled={isToppingUp || !topupAmount || !topupPhone}
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        className="flex-1 bg-[#C85D2E] hover:bg-[#B84A1F]"
                       >
                         {isToppingUp ? 'Processing...' : 'Top Up'}
                       </Button>
@@ -345,11 +345,11 @@ export default function WalletPage() {
                         min="0"
                       />
                       {withdrawAmount && buyingRate && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-[#4A5568] mt-1">
                           ≈ {((parseFloat(withdrawAmount) / buyingRate)).toFixed(2)} USD (using buying rate)
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[#4A5568] mt-1">
                         Enter amount in Kenyan Shillings (KES)
                       </p>
                     </div>
@@ -361,7 +361,7 @@ export default function WalletPage() {
                         value={withdrawPhone}
                         onChange={(e) => setWithdrawPhone(e.target.value)}
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-[#4A5568] mt-1">
                         Enter your Safaricom M-Pesa number
                       </p>
                     </div>

@@ -202,7 +202,7 @@ export default function OrganizerPage() {
                             sizes="(max-width: 768px) 100vw, 25vw"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#2E8C96] to-[#2A7A84] flex items-center justify-center">
+                          <div className="w-full h-full bg-gradient-to-br from-[#C85D2E] to-[#D4A574] flex items-center justify-center">
                             <span className="text-white/50 text-sm">No Image</span>
                           </div>
                         )}

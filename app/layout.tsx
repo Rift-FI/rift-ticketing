@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
+import { ServiceWorkerRegistration } from '@/components/service-worker-registration'
 import './globals.css'
 
 const geist = Geist({ 
@@ -18,15 +19,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Rift - Event Ticketing Platform',
-  description: 'Book and manage events effortlessly. Discover events, purchase tickets, and organize experiences.',
+  title: 'Hafla - Event Discovery & Ticketing Platform',
+  description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
   generator: 'Next.js',
-  applicationName: 'Rift',
+  applicationName: 'Hafla',
   referrer: 'origin-when-cross-origin',
   keywords: ['events', 'ticketing', 'RSVP', 'event management', 'tickets'],
-  authors: [{ name: 'Rift' }],
-  creator: 'Rift',
-  publisher: 'Rift',
+  authors: [{ name: 'Hafla' }],
+  creator: 'Hafla',
+  publisher: 'Hafla',
   formatDetection: {
     email: false,
     address: false,
@@ -40,22 +41,22 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://events.riftfi.xyz',
-    siteName: 'Rift',
-    title: 'Rift - Event Ticketing Platform',
-    description: 'Book and manage events effortlessly. Discover events, purchase tickets, and organize experiences.',
+    siteName: 'Hafla',
+    title: 'Hafla - Event Discovery & Ticketing Platform',
+    description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
     images: [
       {
         url: '/logo.png',
         width: 1200,
         height: 630,
-        alt: 'Rift Event Ticketing Platform',
+        alt: 'Hafla Event Ticketing Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Rift - Event Ticketing Platform',
-    description: 'Book and manage events effortlessly. Discover events, purchase tickets, and organize experiences.',
+    title: 'Hafla - Event Discovery & Ticketing Platform',
+    description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
     images: ['/logo.png'],
   },
   icons: {
@@ -69,7 +70,17 @@ export const metadata: Metadata = {
     ],
     shortcut: '/logo.png',
   },
-  manifest: '/logo.png',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Hafla',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+  },
 }
 
 export default function RootLayout({
@@ -79,11 +90,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#C85D2E" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Hafla" />
+        <link rel="apple-touch-icon" href="/logo.png" />
+      </head>
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
         <Providers>
           {children}
         </Providers>
         <Analytics />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   )

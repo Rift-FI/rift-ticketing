@@ -38,10 +38,10 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-[#E9F1F4] px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign In to Rift</CardTitle>
+          <CardTitle>Sign In to Hafla</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
@@ -52,7 +52,7 @@ export default function SignInPage() {
               </Alert>
             )}
 
-            <Alert className="bg-blue-50 border-blue-200">
+            <Alert className="bg-[#E8D5B7]/30 border-[#C85D2E]/30">
               <AlertDescription>
                 <strong>Demo credentials:</strong>
                 <div className="mt-2 text-sm space-y-1">

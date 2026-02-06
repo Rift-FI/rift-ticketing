@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { title, description, location, date, time, price, capacity, category, isOnline, image } = body;
 
-    if (!title || !description || !date || !price || !capacity || !category) {
+    if (!title || !description || !date || price === undefined || price === null || !capacity || !category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
