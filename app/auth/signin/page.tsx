@@ -1,15 +1,12 @@
 'use client';
 
-import React from "react"
-
-import { useState } from 'react';
+import React, { useState } from "react"
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -38,72 +35,89 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#E9F1F4] px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign In to Hafla</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+    <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#050505] p-6 selection:bg-orange-100 relative overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-[400px] space-y-10 z-10"
+      >
+        {/* Luma-style Auth Header */}
+        <div className="text-center space-y-3">
+          <Link href="/" className="inline-block mb-6">
+            <div className="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-2xl transition-transform hover:rotate-6">
+              <span className="text-white dark:text-black font-bold text-2xl">H</span>
+            </div>
+          </Link>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-none">
+            Welcome back.
+          </h1>
+          <p className="text-neutral-500 font-medium italic font-serif text-lg">Sign in to your account.</p>
+        </div>
 
-            <Alert className="bg-[#E8D5B7]/30 border-[#C85D2E]/30">
-              <AlertDescription>
-                <strong>Demo credentials:</strong>
-                <div className="mt-2 text-sm space-y-1">
-                  <div>Email: user@example.com</div>
-                  <div>Password: password123</div>
-                  <div className="mt-2 text-xs">Or use organizer@example.com for organizer features</div>
-                </div>
-              </AlertDescription>
-            </Alert>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl text-red-600 text-sm font-medium">
+              {error}
+            </div>
+          )}
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
+          {/* Demo Credentials Alert - Styled subtler for Luma aesthetic */}
+          <div className="p-4 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100/50 dark:border-orange-800/20 rounded-2xl">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600 dark:text-orange-400 mb-2">Demo Access</div>
+            <div className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1 font-medium">
+              <p>Email: <span className="font-bold">user@example.com</span></p>
+              <p>Password: <span className="font-bold">password123</span></p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="group border-b border-black/[0.05] dark:border-white/[0.05] focus-within:border-black dark:focus-within:border-white transition-colors pb-2">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Email Address</label>
               <Input
-                id="email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                disabled={isLoading}
+                className="border-0 bg-transparent px-0 h-10 text-lg font-medium placeholder:text-neutral-200 focus-visible:ring-0 shadow-none"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
-                Password
-              </label>
+            <div className="group border-b border-black/[0.05] dark:border-white/[0.05] focus-within:border-black dark:focus-within:border-white transition-colors pb-2">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Password</label>
               <Input
-                id="password"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                disabled={isLoading}
+                className="border-0 bg-transparent px-0 h-10 text-lg font-medium placeholder:text-neutral-200 focus-visible:ring-0 shadow-none"
               />
             </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
-          </form>
-
-          <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link href="/auth/signup" className="font-medium hover:underline text-primary">
-              Sign up
-            </Link>
           </div>
-        </CardContent>
-      </Card>
+
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="w-full rounded-full h-14 bg-black dark:bg-white text-white dark:text-black font-bold text-lg shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
+          >
+            {isLoading ? 'Signing in...' : 'Sign In'}
+          </Button>
+        </form>
+
+        <p className="text-center text-sm font-medium text-neutral-500">
+          Don&apos;t have an account?{' '}
+          <Link href="/auth/signup" className="text-black dark:text-white font-bold hover:underline">
+            Sign up
+          </Link>
+        </p>
+      </motion.div>
+
+      {/* Background decorative orbs for consistency with Home/Login */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-50/50 dark:bg-orange-950/5 blur-[120px] rounded-full" />
+      </div>
     </div>
   );
 }

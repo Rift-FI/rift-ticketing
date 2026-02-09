@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
 import { Navigation } from '@/components/navigation';
+import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { QrCode, Download, Calendar, MapPin } from 'lucide-react';
+import { QrCode, Calendar, MapPin, Compass, Ticket, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface RSVP {
   id: string;
@@ -22,6 +24,7 @@ interface RSVP {
     price: number;
     category: string;
     isOnline: boolean;
+    image?: string | null;
   };
 }
 
@@ -45,11 +48,8 @@ export default function TicketsPage() {
     try {
       setIsLoading(true);
       const response = await fetch('/api/rsvps', {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-        },
+        headers: { 'Authorization': `Bearer ${bearerToken}` },
       });
-
       if (!response.ok) throw new Error('Failed to fetch RSVPs');
       const data = await response.json();
       setRsvps(data);
@@ -60,134 +60,121 @@ export default function TicketsPage() {
     }
   };
 
-  if (authLoading || isLoading) {
-    return (
-      <>
-        <Navigation />
-        <main className="min-h-screen bg-background px-4 py-12">
-          <div className="mx-auto max-w-4xl">
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 rounded-lg bg-muted animate-pulse" />
-              ))}
-            </div>
-          </div>
-        </main>
-      </>
-    );
-  }
+  if (authLoading || isLoading) return (
+    <div className="min-h-screen bg-white flex items-center justify-center text-neutral-400 font-medium tracking-widest uppercase text-xs">
+      Loading your tickets...
+    </div>
+  );
 
   return (
-    <>
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 flex flex-col">
       <Navigation />
-      <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-4xl px-4 py-12">
-          <h1 className="text-3xl font-bold mb-8">My RSVPs</h1>
 
-          {rsvps.length === 0 ? (
-            <Card>
-              <CardContent className="pt-12 pb-12 text-center">
-                <QrCode className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <h2 className="text-lg font-semibold mb-2">No RSVPs yet</h2>
-                <p className="text-muted-foreground mb-6">
-                  You haven't RSVPed to any events yet. Browse available events and RSVP to your first event.
-                </p>
-                <Button onClick={() => router.push('/events')}>
-                  Browse Events
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {rsvps.map((rsvp) => {
-                const event = rsvp.event;
-                const eventDate = new Date(event.date);
+      {/* Main Content: pt-32 ensures space for the floating Navigation */}
+      <main className="flex-1 w-full max-w-[1000px] mx-auto px-6 pt-32 pb-32">
+        
+        {/* Luma Header */}
+        <header className="mb-16 space-y-2 text-center md:text-left">
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-none">
+            My RSVPs
+          </h1>
+          <p className="text-lg text-neutral-500 font-medium italic font-serif">Your upcoming experiences.</p>
+        </header>
 
-                return (
-                  <Card key={rsvp.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex flex-col md:flex-row">
-                        {/* Event Image */}
-                        <div className="md:w-1/4 h-48 md:h-auto bg-gradient-to-r from-blue-500 to-blue-600 overflow-hidden flex items-center justify-center">
-                          <Calendar className="h-16 w-16 text-white/20" />
-                        </div>
-
-                        {/* RSVP Details */}
-                        <div className="flex-1 p-6 flex flex-col justify-between">
-                          <div>
-                            <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-3">
-                              {rsvp.status}
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                            <div className="space-y-2 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                {eventDate.toLocaleDateString()} at {eventDate.toLocaleTimeString()}
-                              </div>
-                              {!event.isOnline && (
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="h-4 w-4" />
-                                  {event.location}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="mt-4 pt-4 border-t border-border">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                              <div>
-                                <div className="text-muted-foreground">Price</div>
-                                <div className="font-semibold text-lg">
-                                  {event.price} USD
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-muted-foreground">
-                                  RSVP Date
-                                </div>
-                                <div className="text-sm font-semibold">
-                                  {new Date(rsvp.createdAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-muted-foreground">
-                                  Category
-                                </div>
-                                <div className="text-sm font-semibold">
-                                  {event.category}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="md:w-48 p-6 bg-muted flex flex-col items-center justify-center border-l border-border">
-                          <div className="mb-4 w-32 h-32 rounded-lg bg-white border-2 border-border flex items-center justify-center">
-                            <div className="text-center text-xs text-muted-foreground">
-                              RSVP
-                              <br />
-                              {rsvp.id.slice(0, 8)}
-                            </div>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="w-full gap-2 bg-transparent"
-                            onClick={() => router.push(`/events/${event.id}`)}
-                          >
-                            View Event
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+        {rsvps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-32 text-center space-y-6">
+            <div className="w-16 h-16 bg-neutral-100 dark:bg-white/5 rounded-full flex items-center justify-center">
+               <Compass className="w-8 h-8 text-neutral-300" />
             </div>
-          )}
-        </div>
+            <div className="space-y-2">
+                <p className="text-neutral-900 dark:text-white font-semibold">No tickets yet.</p>
+                <p className="text-neutral-500 text-sm">Discover your first event today.</p>
+            </div>
+            <Button 
+                onClick={() => router.push('/events')}
+                className="rounded-full bg-black dark:bg-white text-white dark:text-black px-8 font-bold h-12"
+            >
+                Browse Events
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {rsvps.map((rsvp, index) => {
+              const event = rsvp.event;
+              const eventDate = new Date(event.date);
+
+              return (
+                <motion.div 
+                    key={rsvp.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group flex flex-col md:flex-row gap-8 items-start pb-12 border-b border-black/[0.03] dark:border-white/[0.03]"
+                >
+                  {/* Event Thumbnail - Luma Postcard Style */}
+                  <div className="relative w-full md:w-48 aspect-[4/5] rounded-[32px] overflow-hidden bg-neutral-100 dark:bg-neutral-900/40 p-4 flex items-center justify-center flex-shrink-0 transition-all group-hover:bg-neutral-200/50">
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-neutral-800">
+                      {event.image ? (
+                         <Image src={event.image} alt={event.title} fill className="object-contain" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-blue-500">
+                           <Ticket className="w-10 h-10" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Details Section */}
+                  <div className="flex-grow space-y-4 w-full pt-2">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3 mb-2">
+                             <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full ${
+                                rsvp.status === 'CONFIRMED' 
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30' 
+                                : 'bg-orange-100 text-orange-600 dark:bg-orange-950/30'
+                            }`}>
+                                {rsvp.status}
+                            </span>
+                        </div>
+                        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+                            {event.title}
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+                        <div className="flex items-center gap-3 text-sm font-medium text-neutral-500">
+                            <Calendar className="w-4 h-4" />
+                            {eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} at {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm font-medium text-neutral-500">
+                            <MapPin className="w-4 h-4" />
+                            {event.isOnline ? 'Virtual Experience' : event.location}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 pt-4">
+                        <Button 
+                            variant="outline"
+                            onClick={() => router.push(`/events/${event.id}`)}
+                            className="rounded-full h-10 px-6 border-black/[0.08] dark:border-white/[0.08] text-xs font-bold uppercase tracking-wider transition-all hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+                        >
+                            Event Details
+                        </Button>
+                        
+                        <div className="flex items-center gap-2 px-4 h-10 rounded-full bg-neutral-50 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.03]">
+                            <QrCode className="w-4 h-4 text-neutral-400" />
+                            <span className="text-[10px] font-mono font-bold text-neutral-400">#{rsvp.id.slice(0, 8).toUpperCase()}</span>
+                        </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </main>
-    </>
+
+      <Footer />
+    </div>
   );
 }

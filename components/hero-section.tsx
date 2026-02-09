@@ -1,143 +1,81 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion, Variants } from 'framer-motion';
-import { Calendar, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth-context';
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.8,
-      ease: 'easeOut',
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 
 export function HeroSection() {
-  const { user } = useAuth();
   const router = useRouter();
 
   return (
-    <section className="relative w-full h-screen overflow-hidden flex items-center" style={{ pointerEvents: 'auto' }}>
-      {/* Background Image */}
-      <div className="absolute inset-0 w-full h-full">
-        <Image
-          src="/africa4.jpeg"
-          alt="Africa"
-          fill
-          className="object-cover"
-          priority
-          quality={90}
-        />
-        {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70 pointer-events-none" />
-        {/* Warm earth tone overlay to enhance African theme */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#5C3A21]/30 via-[#A0522D]/20 to-[#C85D2E]/25 pointer-events-none" />
+    <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center bg-[#fafafa] dark:bg-[#090909] px-6">
+      {/* Luma-style subtle background glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full opacity-40 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-100 dark:bg-orange-950/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-blue-100 dark:bg-blue-950/20 blur-[120px] rounded-full" />
       </div>
-      {/* Animated earth tone orbs */}
-      <motion.div
-        className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-[#C85D2E]/25 blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.15, 0.3, 0.15],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-[#D4A574]/25 blur-3xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.15, 0.3, 0.15],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-32" style={{ pointerEvents: 'auto' }}>
-        <div className="max-w-4xl mx-auto">
-          {/* Content - Centered */}
-          <motion.div
-            className="text-center space-y-8"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div
-              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/20 backdrop-blur-md px-5 py-2.5 text-sm font-medium text-white shadow-lg"
-              variants={itemVariants}
-            >
-              <Calendar className="w-4 h-4" />
-              <span>Your trusted event discovery platform</span>
-            </motion.div>
+      <div className="relative z-10 w-full max-w-[1200px] mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col items-center text-center space-y-10"
+        >
+          {/* Subtle Badge */}
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-white/[0.02] shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+            </span>
+            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
+              Happening Now
+            </span>
+          </div>
 
-            <motion.h1
-              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-tight tracking-tight drop-shadow-2xl"
-              variants={itemVariants}
-            >
-              Discover events that
-              <span className="block bg-gradient-to-r from-[#C85D2E] via-[#D4A574] to-[#D97706] bg-clip-text text-transparent mt-2">
-                matter to you
-              </span>
-            </motion.h1>
+          {/* Typography: The Luma Special (Tight tracking, heavy weight) */}
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-8xl font-semibold tracking-tight text-neutral-900 dark:text-white">
+              Events <span className="text-neutral-400 dark:text-neutral-500 italic font-serif">refined.</span>
+            </h1>
+            <p className="max-w-[500px] mx-auto text-lg md:text-xl text-neutral-500 dark:text-neutral-400 font-normal leading-relaxed">
+              The professional way to host and discover events in Africa. Clean, simple, and delightful.
+            </p>
+          </div>
 
-            <motion.p
-              className="text-lg sm:text-xl md:text-2xl text-white/95 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light drop-shadow-lg"
-              variants={itemVariants}
-            >
-              Connect with your community through curated events. Discover experiences that inspire, engage, and bring people together.
-            </motion.p>
-          </motion.div>
-
-          {/* Button outside motion.div to ensure clickability */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 relative z-[100]">
+          {/* Action Area */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md">
             <Button
-              onClick={() => router.push('/events')}
-              size="lg"
-              className="w-full sm:w-auto bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white shadow-xl hover:shadow-2xl transition-all px-8 py-4 sm:py-6 text-base font-semibold border-0 backdrop-blur-sm cursor-pointer group"
-              style={{ position: 'relative', zIndex: 100 }}
+              onClick={() => router.push('/create')}
+              className="w-full sm:flex-1 h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black hover:opacity-90 transition-all text-base font-medium shadow-xl"
             >
-              <Calendar className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Browse Events
+              <Plus className="w-5 h-5 mr-2" />
+              Create Event
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/events')}
+              className="w-full sm:flex-1 h-14 rounded-2xl border-black/[0.08] dark:border-white/[0.08] bg-white dark:bg-transparent hover:bg-neutral-50 dark:hover:bg-white/[0.05] transition-all text-base font-medium"
+            >
+              <Search className="w-5 h-5 mr-2 text-neutral-400" />
+              Explore
             </Button>
           </div>
 
-          {/* Features highlight */}
-          <motion.div
-            className="mt-8 flex flex-wrap items-center justify-center gap-3"
-            variants={itemVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            <div className="flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 shadow-md border border-white/30">
-              <Zap className="w-4 h-4 text-[#C85D2E]" />
-              <span className="text-sm font-medium text-white">Instant booking</span>
+          {/* Minimal Social Proof / Trusted section */}
+          <div className="pt-12">
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-[0.2em] mb-6">
+              Trusted by creators at
+            </p>
+            <div className="flex flex-wrap justify-center gap-8 opacity-40 grayscale contrast-125">
+               {/* Replace with small, monochrome SVG logos */}
+               <div className="h-6 w-24 bg-neutral-400 rounded animate-pulse" />
+               <div className="h-6 w-20 bg-neutral-400 rounded animate-pulse" />
+               <div className="h-6 w-28 bg-neutral-400 rounded animate-pulse" />
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 shadow-md border border-white/30">
-              <Calendar className="w-4 h-4 text-[#D4A574]" />
-              <span className="text-sm font-medium text-white">Real-time confirmations</span>
-            </div>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

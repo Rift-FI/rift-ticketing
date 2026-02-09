@@ -1,107 +1,96 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { Mail, Twitter, Instagram, Github } from 'lucide-react';
+import { Twitter, Instagram, Github, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="mt-auto bg-white border-t border-[#E9F1F4]">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr,1.2fr,1.2fr] gap-10">
-          {/* Brand Section */}
-          <div>
-            <Link href="/" className="flex items-center gap-3 sm:gap-4 mb-4">
-              <Image
-                src="/logo.png"
-                alt="Hafla"
-                width={160}
-                height={160}
-                className="h-32 w-32 sm:h-40 sm:w-40 object-contain"
-              />
-              <span className="font-bold text-xl tracking-tight text-[#1F2D3A]">Hafla</span>
+    <footer className="w-full bg-[#fafafa] dark:bg-[#050505] border-t border-black/[0.03] dark:border-white/[0.03] pt-24 pb-12">
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-12 md:gap-4">
+          
+          {/* Brand & Mission - The Luma "Quiet" approach */}
+          <div className="space-y-6 max-w-xs">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-7 h-7 bg-black dark:bg-white rounded-lg flex items-center justify-center transition-transform group-hover:rotate-3">
+                <span className="text-white dark:text-black font-bold text-sm">H</span>
+              </div>
+              <span className="font-semibold text-lg tracking-tight text-neutral-900 dark:text-white">
+                Hafla
+              </span>
             </Link>
-            <p className="text-sm text-[#4A5568] max-w-md">
-              Your trusted platform for discovering and booking events. Connect with your community through curated experiences with secure, instant payments.
+            <p className="text-sm text-neutral-500 leading-relaxed font-normal">
+              The professional way to host and discover curated community experiences. Built for Africa.
             </p>
           </div>
 
-          {/* Product Links */}
-          <div>
-            <h3 className="font-semibold mb-4 text-sm uppercase tracking-[0.18em] text-[#4A5568]">
-              Product
-            </h3>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <Link href="/events" className="text-[#4A5568] hover:text-[#C85D2E] transition-colors">
-                  Browse Events
-                </Link>
-              </li>
-              <li>
-                <Link href="/events/create" className="text-[#4A5568] hover:text-[#C85D2E] transition-colors">
-                  Create Event
-                </Link>
-              </li>
-              <li>
-                <Link href="/my-rsvps" className="text-[#4A5568] hover:text-[#C85D2E] transition-colors">
-                  My RSVPs
-                </Link>
-              </li>
-              <li>
-                <Link href="/wallet" className="text-[#4A5568] hover:text-[#C85D2E] transition-colors">
-                  Wallet
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* Navigation Links - Small, clean columns */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-24">
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Product</h4>
+              <ul className="space-y-3">
+                <li><FooterLink href="/events">Explore</FooterLink></li>
+                <li><FooterLink href="/events/create">Host</FooterLink></li>
+                <li><FooterLink href="/pricing">Pricing</FooterLink></li>
+              </ul>
+            </div>
+            
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Connect</h4>
+              <ul className="space-y-3">
+                <li><FooterLink href="https://twitter.com">Twitter</FooterLink></li>
+                <li><FooterLink href="https://instagram.com">Instagram</FooterLink></li>
+                <li><FooterLink href="mailto:admin@riftfi.xyz">Support</FooterLink></li>
+              </ul>
+            </div>
 
-          {/* Contact / Social */}
-          <div>
-            <h3 className="font-semibold mb-4 text-sm uppercase tracking-[0.18em] text-[#4A5568]">
-              Stay in touch
-            </h3>
-            <div className="space-y-3 text-sm">
-              <a
-                href="mailto:admin@riftfi.xyz"
-                className="inline-flex items-center gap-2 text-[#4A5568] hover:text-[#C85D2E] transition-colors"
-              >
-                <Mail className="w-4 h-4" />
-                admin@riftfi.xyz
-              </a>
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E9F1F4] bg-[#F8F9FA] hover:border-[#C85D2E] hover:bg-[#C85D2E]/10 transition-colors"
-                >
-                  <Twitter className="w-4 h-4 text-[#4A5568]" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E9F1F4] bg-[#F8F9FA] hover:border-[#C85D2E] hover:bg-[#C85D2E]/10 transition-colors"
-                >
-                  <Instagram className="w-4 h-4 text-[#4A5568]" />
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E9F1F4] bg-[#F8F9FA] hover:border-[#C85D2E] hover:bg-[#C85D2E]/10 transition-colors"
-                >
-                  <Github className="w-4 h-4 text-[#4A5568]" />
-                </button>
-              </div>
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Legal</h4>
+              <ul className="space-y-3">
+                <li><FooterLink href="/privacy">Privacy</FooterLink></li>
+                <li><FooterLink href="/terms">Terms</FooterLink></li>
+              </ul>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 border-t border-[#E9F1F4] pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-[#4A5568]">
-          <p>&copy; {new Date().getFullYear()} Hafla. All rights reserved.</p>
-          <p>
-            Powered by{' '}
-            <span className="font-medium text-[#1F2D3A]">
-              blockchain technology • secure payments • instant confirmations
-            </span>
+        {/* Bottom Bar - Extremely Minimal */}
+        <div className="mt-24 pt-8 border-t border-black/[0.03] dark:border-white/[0.03] flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[11px] font-medium text-neutral-400">
+            &copy; {new Date().getFullYear()} Hafla Inc.
           </p>
+          <div className="flex items-center gap-6">
+            <SocialIcon icon={Twitter} href="#" />
+            <SocialIcon icon={Instagram} href="#" />
+            <SocialIcon icon={Github} href="#" />
+            <SocialIcon icon={Mail} href="mailto:admin@riftfi.xyz" />
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link 
+      href={href} 
+      className="text-[13px] font-medium text-neutral-500 hover:text-black dark:hover:text-white transition-colors"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SocialIcon({ icon: Icon, href }: { icon: any, href: string }) {
+  return (
+    <a 
+      href={href} 
+      className="text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      <Icon className="w-4 h-4 stroke-[1.5]" />
+    </a>
   );
 }

@@ -3,24 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Navigation } from '@/components/navigation';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  location: string;
-  price: number;
-  capacity: number;
-  category: string;
-  isOnline: boolean;
-  organizer: { id: string };
-}
+import { ChevronLeft, Globe, MapPin, Clock, Users, DollarSign, Sparkles } from 'lucide-react';
 
 export default function EditEventPage() {
   const params = useParams();
@@ -28,7 +14,6 @@ export default function EditEventPage() {
   const { user, bearerToken } = useAuth();
   const eventId = params.id as string;
 
-  const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +35,7 @@ export default function EditEventPage() {
       return;
     }
     fetchEvent();
-  }, [eventId, user, bearerToken, router]);
+  }, [eventId, user, bearerToken]);
 
   const fetchEvent = async () => {
     try {
@@ -59,13 +44,11 @@ export default function EditEventPage() {
       if (!response.ok) throw new Error('Event not found');
       const data = await response.json();
 
-      // Check if user is the organizer
       if (data.organizer.id !== user?.id) {
         setError('You are not authorized to edit this event');
         return;
       }
 
-      setEvent(data);
       const eventDate = new Date(data.date);
       setFormData({
         title: data.title,
@@ -87,249 +70,168 @@ export default function EditEventPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as any;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    });
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    // Get token from localStorage as fallback
-    const token = bearerToken || localStorage.getItem('bearerToken');
-
-    if (!token) {
-      setError('You must be logged in to edit events');
-      router.push('/auth/login');
-      return;
-    }
-
-    if (!formData.title || !formData.description || !formData.date || !formData.price || !formData.capacity) {
-      setError('Please fill in all required fields');
-      return;
-    }
-
     setIsSaving(true);
     try {
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${bearerToken}`,
         },
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        if (response.status === 401) {
-          setError('Unauthorized. Please log in again.');
-          localStorage.removeItem('bearerToken');
-          localStorage.removeItem('user');
-          setTimeout(() => router.push('/auth/login'), 2000);
-        } else {
-          throw new Error(data.error || 'Failed to update event');
-        }
-        return;
-      }
-
+      if (!response.ok) throw new Error('Failed to update event');
       router.push(`/events/${eventId}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to update event');
+      setError(err.message);
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <>
-        <Navigation />
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <p className="text-gray-500">Loading event...</p>
-        </div>
-      </>
-    );
-  }
-
-  if (error && !event) {
-    return (
-      <>
-        <Navigation />
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
-            <CardContent className="pt-6">
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-              <Button onClick={() => router.back()} className="w-full mt-4">
-                Go Back
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </>
-    );
-  }
+  if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center text-neutral-400 font-medium">Refining details...</div>;
 
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-slate-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Edit Event</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 pb-32">
+      <main className="max-w-[700px] mx-auto px-6 pt-16">
+        
+        {/* Back Button */}
+        <button 
+          onClick={() => router.back()} 
+          className="group flex items-center text-sm font-semibold text-neutral-500 hover:text-black dark:hover:text-white transition-colors mb-12"
+        >
+          <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+          Back to event
+        </button>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Event Title*</label>
-                  <Input
-                    type="text"
-                    name="title"
-                    placeholder="Tech Conference 2024"
-                    value={formData.title}
-                    onChange={handleChange}
-                    disabled={isSaving}
-                  />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="mb-12 space-y-2">
+            <h1 className="text-4xl font-semibold tracking-tight text-neutral-900 dark:text-white">Edit Event</h1>
+            <p className="text-neutral-500 font-medium italic font-serif text-lg">Make it unforgettable.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-12">
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/50 rounded-2xl text-red-600 text-sm font-medium">
+                {error}
+              </div>
+            )}
+
+            {/* Basic Info */}
+            <div className="space-y-6">
+              <div className="group border-b border-black/[0.05] dark:border-white/[0.05] focus-within:border-black dark:focus-within:border-white transition-colors pb-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Event Title</label>
+                <Input
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="border-0 bg-transparent px-0 h-12 text-2xl font-semibold placeholder:text-neutral-200 focus-visible:ring-0"
+                  placeholder="The Nairobi Creative Mixer"
+                />
+              </div>
+
+              <div className="group border-b border-black/[0.05] dark:border-white/[0.05] focus-within:border-black dark:focus-within:border-white transition-colors pb-2">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full border-0 bg-transparent px-0 pt-3 text-lg leading-relaxed placeholder:text-neutral-200 focus:outline-none min-h-[150px] resize-none"
+                  placeholder="What should guests expect?"
+                />
+              </div>
+            </div>
+
+            {/* Logistics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+              <div className="space-y-2 border-b border-black/[0.05] dark:border-white/[0.05] pb-2 focus-within:border-black dark:focus-within:border-white transition-colors">
+                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                  <Clock className="w-3 h-3" /> Date & Time
+                </label>
+                <div className="flex gap-2">
+                  <Input type="date" name="date" value={formData.date} onChange={handleChange} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 font-medium" />
+                  <Input type="time" name="time" value={formData.time} onChange={handleChange} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 font-medium" />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Description*</label>
-                  <textarea
-                    name="description"
-                    placeholder="Tell people about your event..."
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={4}
-                    disabled={isSaving}
-                  />
+              <div className="space-y-2 border-b border-black/[0.05] dark:border-white/[0.05] pb-2 focus-within:border-black dark:focus-within:border-white transition-colors">
+                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                  <Sparkles className="w-3 h-3" /> Category
+                </label>
+                <select name="category" value={formData.category} onChange={handleChange} className="w-full border-0 bg-transparent px-0 h-8 focus:outline-none font-medium text-sm appearance-none cursor-pointer">
+                  <option value="TECH">Technology</option>
+                  <option value="ENTERTAINMENT">Entertainment</option>
+                  <option value="ARTS">Arts</option>
+                  <option value="BUSINESS">Business</option>
+                </select>
+              </div>
+
+              <div className="space-y-2 border-b border-black/[0.05] dark:border-white/[0.05] pb-2 focus-within:border-black dark:focus-within:border-white transition-colors">
+                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                  <MapPin className="w-3 h-3" /> Location
+                </label>
+                <Input name="location" value={formData.location} onChange={handleChange} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 font-medium text-sm" placeholder="Venue or link" />
+              </div>
+
+              <div className="space-y-2 border-b border-black/[0.05] dark:border-white/[0.05] pb-2 focus-within:border-black dark:focus-within:border-white transition-colors">
+                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                  <DollarSign className="w-3 h-3" /> Admission (USD)
+                </label>
+                <Input type="number" name="price" value={formData.price} onChange={handleChange} className="border-0 bg-transparent px-0 h-8 focus-visible:ring-0 font-medium text-sm" placeholder="0.00" />
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex items-center gap-8 py-4">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className={`w-10 h-6 rounded-full transition-colors relative ${formData.isOnline ? 'bg-orange-500' : 'bg-neutral-200 dark:bg-neutral-800'}`}>
+                  <input type="checkbox" name="isOnline" checked={formData.isOnline} onChange={handleChange} className="sr-only" />
+                  <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${formData.isOnline ? 'translate-x-4' : ''}`} />
                 </div>
+                <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 group-hover:text-black dark:group-hover:text-white transition-colors">Virtual Event</span>
+              </label>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Date*</label>
-                    <Input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Time*</label>
-                    <Input
-                      type="time"
-                      name="time"
-                      value={formData.time}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                    />
-                  </div>
-                </div>
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4 text-neutral-400" />
+                <span className="text-sm font-semibold text-neutral-400 uppercase tracking-widest">Capacity</span>
+                <input type="number" name="capacity" value={formData.capacity} onChange={handleChange} className="w-16 border-b border-black/[0.05] bg-transparent text-sm font-bold text-center focus:outline-none focus:border-black transition-colors" />
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    <input
-                      type="checkbox"
-                      name="isOnline"
-                      checked={formData.isOnline}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                      className="mr-2"
-                    />
-                    Online Event
-                  </label>
-                </div>
-
-                {!formData.isOnline && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Location*</label>
-                    <Input
-                      type="text"
-                      name="location"
-                      placeholder="123 Main St, City, Country"
-                      value={formData.location}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                    />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Price (USD)*</label>
-                    <Input
-                      type="number"
-                      name="price"
-                      placeholder="0"
-                      value={formData.price}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Capacity*</label>
-                    <Input
-                      type="number"
-                      name="capacity"
-                      placeholder="100"
-                      value={formData.capacity}
-                      onChange={handleChange}
-                      disabled={isSaving}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    disabled={isSaving}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="TECH">Tech</option>
-                    <option value="ENTERTAINMENT">Entertainment</option>
-                    <option value="SPORTS">Sports</option>
-                    <option value="ARTS">Arts</option>
-                    <option value="BUSINESS">Business</option>
-                    <option value="EDUCATION">Education</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={isSaving} className="flex-1">
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.back()}
-                    disabled={isSaving}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </>
+            {/* Actions */}
+            <div className="flex items-center gap-4 pt-12">
+              <Button 
+                type="submit" 
+                disabled={isSaving} 
+                className="flex-1 rounded-full h-14 bg-black dark:bg-white text-white dark:text-black font-bold text-lg shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                {isSaving ? 'Updating...' : 'Save Changes'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={() => router.back()} 
+                className="rounded-full h-14 px-8 text-neutral-500 font-bold hover:bg-neutral-100 dark:hover:bg-white/5"
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+      </main>
+    </div>
   );
 }

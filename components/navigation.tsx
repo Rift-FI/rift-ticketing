@@ -1,10 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,305 +13,175 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, Plus, User, Wallet, Calendar, LayoutDashboard, LogOut } from 'lucide-react';
 
 export function Navigation() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const isHomePage = pathname === '/';
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Only apply scroll logic on homepage
-      if (isHomePage) {
-        // Hero section is 90vh, so switch theme after scrolling past it
-        const heroHeight = window.innerHeight * 0.9;
-        setIsScrolled(window.scrollY > heroHeight);
-      } else {
-        // On other pages, always use dark theme
-        setIsScrolled(true);
-      }
-    };
-    handleScroll();
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHomePage]);
+  }, []);
 
   return (
-    <motion.nav
-      className="sticky top-0 z-50 w-full border-b border-transparent transition-all"
-      style={{ 
-        backgroundColor: 'transparent',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)'
-      }}
-      initial={{ y: -24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
-          <div className="flex items-center gap-3 sm:gap-6 md:gap-8">
-            <Link href="/" className="flex items-center gap-3 sm:gap-4">
-              <Image
-                src="/logo.png"
-                alt="Hafla"
-                width={160}
-                height={160}
-                className="h-32 w-32 sm:h-40 sm:w-40 object-contain"
-              />
-              <span className={`font-bold text-lg sm:text-xl tracking-tight transition-colors ${
-                isScrolled 
-                  ? 'text-black drop-shadow-lg' 
-                  : 'text-white drop-shadow-lg'
-              }`}>
-                Hafla
-              </span>
-            </Link>
-
-            <div className="hidden gap-6 md:flex">
-              <Link
-                href="/events"
-                className={`text-sm font-medium transition-colors drop-shadow-md ${
-                  isScrolled 
-                    ? 'text-black/90 hover:text-black' 
-                    : 'text-white/90 hover:text-white'
-                }`}
-              >
-                Browse Events
-              </Link>
-              {user && (
-                <Link
-                  href="/my-rsvps"
-                  className={`text-sm font-medium transition-colors drop-shadow-md ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  My RSVPs
-                </Link>
-              )}
+    <nav className="fixed top-0 z-[100] w-full flex justify-center pt-4 px-4 pointer-events-none">
+      <motion.div
+        className={`
+          pointer-events-auto
+          flex h-14 items-center justify-between w-full max-w-7xl
+          px-4 rounded-2xl transition-all duration-300
+          ${scrolled 
+            ? 'bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-black/[0.05] dark:border-white/[0.05] shadow-[0_8px_30px_rgb(0,0,0,0.04)]' 
+            : 'bg-transparent border border-transparent'
+          }
+        `}
+      >
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center group-hover:rotate-6 transition-transform">
+              <span className="text-white dark:text-black font-bold text-lg">H</span>
             </div>
-          </div>
+            <span className="font-semibold text-base tracking-tight text-neutral-900 dark:text-white">
+              Hafla
+            </span>
+          </Link>
 
-          <div className="hidden gap-4 md:flex items-center">
-            {user ? (
-              <>
-                <Link href="/events/create">
-                  <Button
-                    size="sm"
-                    className={`hidden lg:inline-flex shadow-sm border-0 transition-colors ${
-                      isScrolled 
-                        ? 'bg-[#1F2D3A] hover:bg-[#2A3A4A] text-white' 
-                        : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
-                    }`}
-                  >
-                    Create Event
-                  </Button>
-                </Link>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={`flex items-center gap-2 transition-colors ${
-                        isScrolled 
-                          ? 'border-[#1F2D3A]/30 bg-[#1F2D3A]/10 hover:border-[#1F2D3A]/50 hover:bg-[#1F2D3A]/20 text-black' 
-                          : 'border-white/30 bg-white/10 hover:border-white/50 hover:bg-white/20 text-white backdrop-blur-sm'
-                      }`}
-                    >
-                      <User className="w-4 h-4" />
-                      <span className="hidden sm:inline max-w-[120px] truncate">
-                        {user.name || user.externalId}
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">Profile</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/wallet">Wallet</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/my-rsvps">My RSVPs</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/events/create">Create Event</Link>
-                    </DropdownMenuItem>
-                    {user?.role === 'ORGANIZER' && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/organizer">Organizer Dashboard</Link>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        logout();
-                      }}
-                      className="text-[#e54d2e]"
-                    >
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`transition-colors ${
-                      isScrolled 
-                        ? 'text-black/90 hover:bg-[#1F2D3A]/10' 
-                        : 'text-white/90 hover:bg-white/10'
-                    }`}
-                  >
-                    Login
-                  </Button>
-                </Link>
-                <Link href="/auth/signup">
-                  <Button
-                    size="sm"
-                    className={`shadow-sm border-0 transition-colors ${
-                      isScrolled 
-                        ? 'bg-[#1F2D3A] hover:bg-[#2A3A4A] text-white' 
-                        : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm'
-                    }`}
-                  >
-                    Get Started
-                  </Button>
-                </Link>
-              </>
-            )}
+          <div className="hidden md:flex items-center gap-1">
+            <NavLink href="/events" active={pathname === '/events'}>Explore</NavLink>
+            {user && <NavLink href="/my-rsvps" active={pathname === '/my-rsvps'}>My Events</NavLink>}
           </div>
-
-          {/* Mobile menu */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className={`md:hidden p-2 rounded-lg border transition-colors ${
-              isScrolled 
-                ? 'border-[#1F2D3A]/30 bg-[#1F2D3A]/10 hover:border-[#1F2D3A]/50 hover:bg-[#1F2D3A]/20 text-black' 
-                : 'border-white/30 bg-white/10 hover:border-white/50 hover:bg-white/20 text-white backdrop-blur-md'
-            }`}
-          >
-            {isOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
 
-        {isOpen && (
-          <div className={`md:hidden pb-4 pt-4 space-y-4 border-t backdrop-blur-md transition-colors ${
-            isScrolled 
-              ? 'border-[#1F2D3A]/20 bg-white/90' 
-              : 'border-white/20 bg-black/20'
-          }`}>
-            <Link 
-              href="/events" 
-              className={`block text-sm font-medium transition-colors ${
-                isScrolled 
-                  ? 'text-black/90 hover:text-black' 
-                  : 'text-white/90 hover:text-white'
-              }`}
-            >
-              Browse Events
-            </Link>
-            {user && (
-              <Link 
-                href="/my-rsvps" 
-                className={`block text-sm font-medium transition-colors ${
-                  isScrolled 
-                    ? 'text-black/90 hover:text-black' 
-                    : 'text-white/90 hover:text-white'
-                }`}
-              >
-                My RSVPs
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <Link href="/events/create" className="hidden sm:block">
+                <Button
+                  size="sm"
+                  className="rounded-full bg-black dark:bg-white text-white dark:text-black hover:opacity-90 px-4 h-9 text-sm font-medium transition-all"
+                >
+                  <Plus className="w-4 h-4 mr-1.5 stroke-[3]" />
+                  Create
+                </Button>
               </Link>
-            )}
-            {user ? (
-              <>
-                <Link 
-                  href="/profile" 
-                  className={`block text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  Profile
-                </Link>
-                <Link 
-                  href="/wallet" 
-                  className={`block text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  Wallet
-                </Link>
-                <Link 
-                  href="/events/create" 
-                  className={`block text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  Create Event
-                </Link>
-                {user.role === 'ORGANIZER' && (
-                  <Link 
-                    href="/organizer" 
-                    className={`block text-sm font-medium transition-colors ${
-                      isScrolled 
-                        ? 'text-black/90 hover:text-black' 
-                        : 'text-white/90 hover:text-white'
-                    }`}
-                  >
-                    Organizer Dashboard
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center w-9 h-9 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-black/[0.05] dark:border-white/[0.05] overflow-hidden focus:outline-none transition-transform active:scale-95">
+                    {user.image ? (
+                        <img src={user.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                        <User className="w-4 h-4 text-neutral-500" />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-2xl mt-2 border-black/[0.08] dark:border-white/[0.08] shadow-2xl">
+                  <div className="px-3 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Account</div>
+                  
+                  <Link href="/profile">
+                    <DropdownMenuItem className="rounded-xl focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer py-2">
+                      <User className="w-4 h-4 mr-2" /> Profile
+                    </DropdownMenuItem>
                   </Link>
-                )}
-                <button
-                  onClick={() => {
-                    logout();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left text-sm font-medium text-[#e54d2e]"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link 
-                  href="/auth/login" 
-                  className={`block text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  Login
-                </Link>
-                <Link 
-                  href="/auth/signup" 
-                  className={`block text-sm font-medium transition-colors ${
-                    isScrolled 
-                      ? 'text-black/90 hover:text-black' 
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
+
+                  <Link href="/wallet">
+                    <DropdownMenuItem className="rounded-xl focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer py-2">
+                      <Wallet className="w-4 h-4 mr-2" /> Wallet
+                    </DropdownMenuItem>
+                  </Link>
+
+                  <Link href="/my-rsvps">
+                    <DropdownMenuItem className="rounded-xl focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer py-2">
+                      <Calendar className="w-4 h-4 mr-2" /> My RSVPs
+                    </DropdownMenuItem>
+                  </Link>
+                  
+                  {user?.role === 'ORGANIZER' && (
+                    <>
+                      <DropdownMenuSeparator className="my-1 bg-neutral-100 dark:bg-neutral-800" />
+                      <div className="px-3 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Management</div>
+                      <Link href="/organizer">
+                        <DropdownMenuItem className="rounded-xl focus:bg-neutral-100 dark:focus:bg-neutral-800 cursor-pointer py-2">
+                          <LayoutDashboard className="w-4 h-4 mr-2" /> Dashboard
+                        </DropdownMenuItem>
+                      </Link>
+                    </>
+                  )}
+                  
+                  <DropdownMenuSeparator className="my-1 bg-neutral-100 dark:bg-neutral-800" />
+                  <DropdownMenuItem 
+                    onClick={logout}
+                    className="rounded-xl focus:bg-red-50 dark:focus:bg-red-950/30 text-red-500 focus:text-red-600 cursor-pointer py-2"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" /> Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link href="/auth/login">
+                <Button variant="ghost" size="sm" className="rounded-full text-neutral-600 dark:text-neutral-400 font-medium px-4">
+                  Log in
+                </Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button size="sm" className="rounded-full bg-black dark:bg-white text-white dark:text-black font-medium px-5 h-9 shadow-lg shadow-black/5">
+                  Sign up
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 text-neutral-600 dark:text-neutral-400"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed inset-x-4 top-20 z-50 p-4 bg-white dark:bg-[#111] border border-black/[0.08] dark:border-white/[0.08] rounded-3xl shadow-2xl md:hidden"
+          >
+            <div className="flex flex-col gap-2">
+              <Link href="/events" onClick={() => setIsOpen(false)} className="p-3 text-lg font-medium border-b border-neutral-50 dark:border-neutral-800">Explore</Link>
+              {user && <Link href="/my-rsvps" onClick={() => setIsOpen(false)} className="p-3 text-lg font-medium border-b border-neutral-50 dark:border-neutral-800">My Events</Link>}
+              <Link href="/auth/login" onClick={() => setIsOpen(false)} className="p-3 text-lg font-medium">Log in</Link>
+              <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                <Button className="w-full rounded-2xl h-12 bg-black dark:bg-white mt-2">Sign up</Button>
+              </Link>
+            </div>
+          </motion.div>
         )}
-      </div>
-    </motion.nav>
+      </AnimatePresence>
+    </nav>
+  );
+}
+
+function NavLink({ href, children, active }: { href: string; children: React.ReactNode; active?: boolean }) {
+  return (
+    <Link 
+      href={href} 
+      className={`
+        px-4 py-2 text-sm font-medium rounded-full transition-colors
+        ${active 
+          ? 'text-neutral-900 dark:text-white bg-neutral-100 dark:bg-white/10' 
+          : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5'
+        }
+      `}
+    >
+      {children}
+    </Link>
   );
 }

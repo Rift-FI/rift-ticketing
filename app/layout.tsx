@@ -1,5 +1,5 @@
 import React from "react"
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from '@/components/providers'
@@ -18,21 +18,30 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+// Refined Viewport for smooth Luma-style scrolling and preventing zoom on input focus
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1, // Prevents unintended zoom on mobile inputs
+  userScalable: false,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#050505' },
+  ],
+}
+
 export const metadata: Metadata = {
-  title: 'Hafla - Event Discovery & Ticketing Platform',
-  description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
-  generator: 'Next.js',
+  title: {
+    default: 'Hafla — Event Discovery',
+    template: '%s | Hafla'
+  },
+  description: 'Discover and book curated community experiences. Secure payments with M-Pesa and Rift USDC.',
   applicationName: 'Hafla',
   referrer: 'origin-when-cross-origin',
-  keywords: ['events', 'ticketing', 'RSVP', 'event management', 'tickets'],
+  keywords: ['events', 'ticketing', 'RSVP', 'nairobi events', 'web3 tickets', 'kenya events'],
   authors: [{ name: 'Hafla' }],
   creator: 'Hafla',
   publisher: 'Hafla',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   metadataBase: new URL('https://events.riftfi.xyz'),
   alternates: {
     canonical: '/',
@@ -42,44 +51,32 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://events.riftfi.xyz',
     siteName: 'Hafla',
-    title: 'Hafla - Event Discovery & Ticketing Platform',
-    description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
+    title: 'Hafla — Event Discovery',
+    description: 'Discover and book curated community experiences. Secure payments with M-Pesa and Rift USDC.',
     images: [
       {
-        url: '/logo.png',
+        url: '/og-image.png', // Ensure you have a high-res editorial OG image
         width: 1200,
         height: 630,
-        alt: 'Hafla Event Ticketing Platform',
+        alt: 'Hafla Event Discovery',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hafla - Event Discovery & Ticketing Platform',
-    description: 'Discover and book curated events in your community. Secure payments with M-Pesa and USDC. Instant confirmations and seamless event management.',
-    images: ['/logo.png'],
+    title: 'Hafla — Event Discovery',
+    description: 'Discover and book curated community experiences.',
+    images: ['/og-image.png'],
   },
   icons: {
-    icon: [
-      { url: '/logo.png', sizes: 'any' },
-      { url: '/logo.png', type: 'image/png', sizes: '32x32' },
-      { url: '/logo.png', type: 'image/png', sizes: '16x16' },
-    ],
-    apple: [
-      { url: '/logo.png', sizes: '180x180', type: 'image/png' },
-    ],
-    shortcut: '/logo.png',
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Hafla',
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
   },
 }
 
@@ -89,18 +86,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="selection:bg-orange-100 selection:text-orange-900">
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#C85D2E" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Hafla" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        {/* Luma uses a very clean head without redundant meta tags handled by Next.js metadata */}
       </head>
-      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased bg-[#fafafa] dark:bg-[#050505] text-neutral-900 dark:text-white`}>
         <Providers>
-          {children}
+          {/* Main wrapper to ensure consistent scroll behavior and z-index context */}
+          <div className="relative flex min-h-screen flex-col">
+            {children}
+          </div>
         </Providers>
         <Analytics />
         <ServiceWorkerRegistration />

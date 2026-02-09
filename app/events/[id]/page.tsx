@@ -1,39 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
-import { Navigation } from '@/components/navigation';
-import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Calendar, MapPin, Users, Share2, Edit, Trash2, BarChart3, Mail, ReceiptText, ExternalLink } from 'lucide-react';
+import { 
+  Calendar, MapPin, Users, Share2, Edit, Trash2, 
+  BarChart3, Mail, CheckCircle2, AlertCircle, ChevronLeft,
+  ArrowRight
+} from 'lucide-react';
 import { generateGoogleCalendarUrl } from '@/lib/calendar';
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  location: string;
-  price: number; // Price is stored in USD
-  capacity: number;
-  category: string;
-  isOnline: boolean;
-  shareableUrl: string;
-  image?: string | null;
-  organizer: { id: string; externalId: string; walletAddress?: string | null };
-  rsvps: { id: string; userId: string; status: string }[]; // Added status to RSVP
-}
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -41,112 +20,18 @@ export default function EventDetailsPage() {
   const { user, bearerToken } = useAuth();
   const eventId = params.id as string;
 
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [hasRsvped, setHasRsvped] = useState(false);
   const [isRsvping, setIsRsvping] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed' | null>(null);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
-  const [isCheckingBalance, setIsCheckingBalance] = useState(false);
-  const [buyingRate, setBuyingRate] = useState<number | null>(null); // For displaying KES
-  const [sellingRate, setSellingRate] = useState<number | null>(null); // For invoice calculations
-  const [emailSent, setEmailSent] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [ticketEmailSent, setTicketEmailSent] = useState(false);
-  const [sendingTicket, setSendingTicket] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [confirmationCode, setConfirmationCode] = useState<string | null>(null);
-
-  // Check for payment redirect query parameters
-  useEffect(() => {
-    if (!user || !bearerToken) return;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const errorParam = urlParams.get('error');
-    
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-      router.replace(`/events/${eventId}`);
-      return;
-    }
-
-    // Check if this is a payment redirect
-    // M-Pesa: ?transaction_code=...&order_id=...
-    // On-chain: ?hash=0x...&order_id=...
-    const transactionCode = urlParams.get('transaction_code'); // M-Pesa
-    const hash = urlParams.get('hash'); // On-chain
-    const orderId = urlParams.get('order_id') || urlParams.get('orderId'); // Support both formats
-
-    if ((transactionCode || hash) && orderId) {
-      // Process the payment
-      handlePaymentRedirect(transactionCode, hash, orderId);
-      // Clean up URL
-      router.replace(`/events/${eventId}`);
-    }
-  }, [eventId, user, bearerToken, router]);
-
-  const handlePaymentRedirect = async (transactionCode: string | null, hash: string | null, orderId: string) => {
-    if (!bearerToken) return;
-
-    try {
-      const response = await fetch(`/api/events/${eventId}/transaction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${bearerToken}`,
-        },
-        body: JSON.stringify({ 
-          transactionCode, 
-          hash, 
-          orderId,
-          paymentType: transactionCode ? 'mpesa' : 'onchain'
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        // If payment failed (status: failed), set payment status to failed
-        if (data.status === 'failed') {
-          setPaymentStatus('failed');
-        }
-        throw new Error(data.error || 'Failed to process payment');
-      }
-
-      const data = await response.json();
-      
-      // If payment was successful, check if email was sent
-      if (data.success && (data.status === 'success' || data.status === 'confirmed')) {
-        setPaymentStatus('success');
-        setHasRsvped(true);
-        if (data.emailSent) {
-          setEmailSent(true);
-          setUserEmail(data.userEmail);
-        }
-      } else if (data.success && data.status === 'pending') {
-        // Payment is still processing
-        setPaymentStatus('pending');
-      }
-
-      // Refresh event details to show updated status
-      await fetchEventDetails();
-    } catch (err: any) {
-      console.error('Error processing payment:', err);
-      setError(err.message || 'Failed to process payment');
-      // Don't redirect - show error on current page
-    }
-  };
+  const [sellingRate, setSellingRate] = useState<number | null>(null);
 
   useEffect(() => {
     fetchEventDetails();
-    fetchExchangeRate(); // Fetch exchange rate for price display (works for all users)
-    if (user && bearerToken) {
-      checkWalletBalance();
-    }
-  }, [eventId, user, bearerToken]);
-
+    fetchExchangeRate();
+  }, [eventId, user]);
 
   const fetchExchangeRate = async () => {
     try {
@@ -154,71 +39,8 @@ export default function EventDetailsPage() {
       if (response.ok) {
         const data = await response.json();
         setSellingRate(data.sellingRate || data.rate || null);
-      } else {
-        console.error('Failed to fetch exchange rate');
-        setSellingRate(null);
       }
-    } catch (err) {
-      console.error('Error fetching exchange rate:', err);
-      setSellingRate(null);
-    }
-  };
-
-  const checkWalletBalance = async () => {
-    if (!bearerToken) return;
-    setIsCheckingBalance(true);
-    try {
-      const response = await fetch('/api/wallet/balance', {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setWalletBalance(data.balance);
-        setBuyingRate(data.exchangeRate || data.buyingRate); // buying_rate for balance display
-        setSellingRate(data.sellingRate); // selling_rate for invoice RSVPs
-      }
-    } catch (err) {
-      console.error('Error checking wallet balance:', err);
-    } finally {
-      setIsCheckingBalance(false);
-    }
-  };
-
-  const handleSendTicket = async () => {
-    if (!bearerToken) return;
-    
-    setSendingTicket(true);
-    try {
-      const response = await fetch(`/api/rsvps/${eventId}/send-ticket`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.alreadySent) {
-          setError('Ticket email has already been sent. Please check your inbox and spam folder.');
-        } else {
-          setError(data.error || 'Failed to send ticket email');
-        }
-        return;
-      }
-
-      // Mark as sent
-      setTicketEmailSent(true);
-      setError('');
-      alert('Ticket email sent successfully! Please check your inbox and spam folder.');
-    } catch (error) {
-      console.error('Error sending ticket:', error);
-      setError('Failed to send ticket email. Please try again.');
-    } finally {
-      setSendingTicket(false);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const fetchEventDetails = async () => {
@@ -228,694 +50,235 @@ export default function EventDetailsPage() {
       if (!response.ok) throw new Error('Event not found');
       const data = await response.json();
       setEvent(data);
-
-      // Check if user has already RSVPed
       if (user && data.rsvps) {
-        const userRsvp = data.rsvps.some((rsvp: any) => rsvp.userId === user.id && rsvp.status === 'CONFIRMED');
-        setHasRsvped(userRsvp);
-        
-        // Fetch invoice status to check payment status
-        if (bearerToken) {
-          try {
-            const invoiceResponse = await fetch(`/api/events/${eventId}/invoice-status`, {
-              headers: {
-                'Authorization': `Bearer ${bearerToken}`,
-              },
-            });
-            
-            if (invoiceResponse.ok) {
-              const invoiceData = await invoiceResponse.json();
-              
-              // If invoice was cleaned up (old transaction code), reset payment state
-              if (invoiceData.cleanedUp) {
-                setPaymentUrl(null);
-                setPaymentStatus(null);
-                setError('Previous payment attempt expired. Please try again.');
-                return;
-              }
-              
-              if (invoiceData.hasInvoice) {
-                setPaymentUrl(invoiceData.invoiceUrl);
-                
-                // Check if ticket email was sent
-                if (invoiceData.ticketEmailSent) {
-                  setTicketEmailSent(true);
-                }
-                
-                // Set order ID and confirmation code
-                if (invoiceData.orderId) {
-                  setOrderId(invoiceData.orderId);
-                }
-                if (invoiceData.receiptNumber || invoiceData.transactionCode) {
-                  setConfirmationCode(invoiceData.receiptNumber || invoiceData.transactionCode);
-                }
-                
-                // Determine payment status
-                // Only show "pending" if we have a transaction code (payment widget redirected back)
-                if (invoiceData.receiptNumber && invoiceData.status === 'CONFIRMED') {
-                  setPaymentStatus('success');
-                  setHasRsvped(true);
-                } else if (invoiceData.transactionCode && !invoiceData.receiptNumber && invoiceData.status === 'PENDING') {
-                  // We have transaction code but no receipt = payment is being processed
-                  setPaymentStatus('pending');
-                } else if (invoiceData.status === 'FAILED') {
-                  setPaymentStatus('failed');
-                }
-                // If no transaction code, don't set pending status - just show payment button
-              }
-            }
-          } catch (err) {
-            console.error('Error fetching invoice status:', err);
-          }
-        }
+        setHasRsvped(data.rsvps.some((r: any) => r.userId === user.id && r.status === 'CONFIRMED'));
       }
-    } catch (error: any) {
-      setError(error.message || 'Failed to load event');
-    } finally {
-      setIsLoading(false);
-    }
+    } catch (err: any) { setError(err.message); }
+    finally { setIsLoading(false); }
   };
 
-  const handleRsvp = async (paymentMethod: 'invoice' | 'wallet' = 'invoice') => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
+  const handleRsvp = async () => {
+    if (!user) { router.push('/auth/login'); return; }
     setIsRsvping(true);
     try {
-      // Generate unique orderId
-      const orderId = crypto.randomUUID();
-      
-      // Get current URL as originUrl (Rift will append ?ref=pay&transaction_code=...&order_id=...)
-      const originUrl = window.location.origin + window.location.pathname;
-      
       const response = await fetch(`/api/events/${eventId}/rsvp`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${bearerToken}`,
-        },
-        body: JSON.stringify({ originUrl, orderId, paymentMethod }),
+        headers: { 'Authorization': `Bearer ${bearerToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ originUrl: window.location.href, paymentMethod: 'invoice' }),
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to RSVP');
-      }
-
       const result = await response.json();
-      
-      // If RSVP was successful (free event or wallet payment), confirm immediately
-      if (result.success && !result.paymentUrl) {
-        setHasRsvped(true);
-        setPaymentStatus('success');
-        setError('');
-        if (result.emailSent) {
-          setEmailSent(true);
-          setUserEmail(result.userEmail);
-        }
-        // Refresh event details
-        await fetchEventDetails();
-        if (paymentMethod === 'wallet') {
-          await checkWalletBalance();
-        }
-      } else if (result.paymentUrl) {
-        // Invoice payment - show payment link
-        setPaymentUrl(result.paymentUrl);
-        setError(''); // Clear any errors
-      } else {
-        throw new Error('Payment link not received');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to RSVP');
-    } finally {
-      setIsRsvping(false);
-    }
+      if (result.paymentUrl) setPaymentUrl(result.paymentUrl);
+      else if (result.success) setHasRsvped(true);
+    } catch (err: any) { setError(err.message); }
+    finally { setIsRsvping(false); }
   };
 
-  const handleDelete = async () => {
-    // Get token from localStorage as fallback
-    const token = bearerToken || localStorage.getItem('bearerToken');
-    
-    if (!user || !token) {
-      setError('You must be logged in to delete events');
-      router.push('/auth/login');
-      return;
-    }
-    
-    if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+  if (isLoading) return <div className="min-h-screen bg-white flex items-center justify-center font-medium text-neutral-400">Loading experience...</div>;
 
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        if (response.status === 401) {
-          setError('Unauthorized. Please log in again.');
-          localStorage.removeItem('bearerToken');
-          localStorage.removeItem('user');
-          setTimeout(() => router.push('/auth/login'), 2000);
-        } else {
-          throw new Error(data.error || 'Failed to delete event');
-        }
-        return;
-      }
-
-      router.push('/events');
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete event');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
+  const eventDate = new Date(event?.date);
   const isOrganizer = user && event && event.organizer.id === user.id;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading event...</p>
-      </div>
-    );
-  }
-
-  if (error || !event) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <Alert variant="destructive">
-              <AlertDescription>{error || 'Event not found'}</AlertDescription>
-            </Alert>
-            <Button onClick={() => router.back()} className="w-full mt-4">
-              Go Back
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const eventDate = new Date(event.date);
-  const confirmedRsvpsCount = event.rsvps.filter(r => r.status === 'CONFIRMED').length;
-  const spotsLeft = event.capacity - confirmedRsvpsCount;
-  const isFull = spotsLeft <= 0;
-  
-  // Price is stored in USD, convert to KES for display using selling_rate
-  const eventPriceInKES = sellingRate ? (event.price * sellingRate) : null;
-  const eventPriceInUSDC = event.price; // Price is already in USD
-
   return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-[#E9F1F4] py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="text-[#C85D2E] hover:text-[#B84A1F] mb-6"
-        >
-          ← Back to Events
-        </button>
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 pb-20">
+      <main className="max-w-[1100px] mx-auto px-6 pt-12">
+        
+        {/* Navigation / Header */}
+        <div className="flex items-center justify-between mb-12">
+          <button onClick={() => router.back()} className="group flex items-center text-sm font-semibold text-neutral-500 hover:text-black dark:hover:text-white transition-colors">
+            <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+            Back
+          </button>
+          
+          <div className="flex items-center gap-3">
+            {isOrganizer && (
+              <div className="flex items-center gap-2 mr-4 border-r pr-4 border-black/5">
+                <Link href={`/events/${eventId}/dashboard`}>
+                  <Button variant="ghost" size="sm" className="rounded-full h-9"><BarChart3 className="w-4 h-4 mr-2" /> Stats</Button>
+                </Link>
+                <Link href={`/events/${eventId}/edit`}>
+                  <Button variant="ghost" size="sm" className="rounded-full h-9"><Edit className="w-4 h-4 mr-2" /> Edit</Button>
+                </Link>
+              </div>
+            )}
+            <Button variant="outline" size="sm" className="rounded-full h-9 px-4 border-black/[0.08] dark:border-white/[0.08]">
+              <Share2 className="w-4 h-4 mr-2" /> Share
+            </Button>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <Card className="p-0 overflow-hidden">
-              <CardHeader className="p-0">
-                {/* Event Image */}
-                {event.image && (
-                  <div className="relative w-full h-96 lg:h-[500px] overflow-hidden">
-                    <Image 
-                      src={event.image} 
-                      alt={event.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 50vw"
-                      priority
-                    />
-                  </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          
+          {/* Left Column: Visuals & Content */}
+          <div className="lg:col-span-7 space-y-12">
+         {/* Event Hero Image - Refactored for full visibility */}
+<div className="relative aspect-[16/10] w-full rounded-[40px] overflow-hidden shadow-2xl shadow-black/5 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center p-6 md:p-10">
+  {/* Blurred background for a premium Luma effect if the image doesn't fill the space */}
+  <div className="absolute inset-0 opacity-20 blur-3xl scale-110 pointer-events-none">
+    <Image 
+      src={event.image || '/placeholder.jpeg'} 
+      alt=""
+      fill 
+      className="object-cover"
+    />
+  </div>
+  
+  <div className="relative w-full h-full">
+    <Image 
+      src={event.image || '/placeholder.jpeg'} 
+      alt={event.title} 
+      fill 
+      className="object-contain" // This ensures the whole image is visible
+      priority
+    />
+  </div>
+</div>
+
+            {/* Typography & Title */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold uppercase tracking-widest">
+                  {event.category}
+                </span>
+                {event.isOnline && (
+                  <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest">
+                    Virtual
+                  </span>
                 )}
-                <div className="px-6 pt-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className="text-xs font-semibold text-[#C85D2E] bg-[#E9F1F4] px-3 py-1 rounded-full">
-                      {event.category}
-                    </span>
-                    {event.isOnline && (
-                      <span className="ml-2 text-xs font-semibold text-[#D4A574] bg-[#E8D5B7] px-3 py-1 rounded-full">
-                        Online Event
-                      </span>
-                    )}
-                    {(event.price === 0 || event.price <= 0) && (
-                      <span className="ml-2 text-xs font-semibold text-[#D4A574] bg-[#E8D5B7] px-3 py-1 rounded-full">
-                        Free Event
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    {isOrganizer && (
-                      <>
-                        <Link href={`/events/${eventId}/dashboard`}>
-                          <Button variant="ghost" size="sm">
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            View RSVPs
-                          </Button>
-                        </Link>
-                        <Link href={`/events/${eventId}/edit`}>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="text-[#e54d2e] hover:text-[#c7361e]"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          {isDeleting ? 'Deleting...' : 'Delete'}
-                        </Button>
-                      </>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Share2 className="w-4 h-4 mr-2" />
-                          Share
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const url = `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`;
-                            const text = `Check out this event: ${event.title}`;
-                            window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, '_blank');
-                          }}
-                        >
-                          <span className="mr-2">📱</span> WhatsApp
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const url = `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`;
-                            const text = `Check out this event: ${event.title}`;
-                            window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
-                          }}
-                        >
-                          <span className="mr-2">✈️</span> Telegram
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const url = `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`;
-                            const text = `Check out this event: ${event.title}`;
-                            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`, '_blank');
-                          }}
-                        >
-                          <span className="mr-2">🐦</span> Twitter/X
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const url = `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`;
-                            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-                          }}
-                        >
-                          <span className="mr-2">👤</span> Facebook
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const url = `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`;
-                            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
-                          }}
-                        >
-                          <span className="mr-2">💼</span> LinkedIn
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              `${window.location.origin}/events/${event.id}?url=${event.shareableUrl}`
-                            );
-                            alert('Event link copied to clipboard!');
-                          }}
-                        >
-                          <span className="mr-2">🔗</span> Copy Link
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter leading-[0.95] text-neutral-900 dark:text-white">
+                {event.title}
+              </h1>
+
+              <div className="flex items-center gap-4 text-neutral-500">
+                <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center font-bold text-sm">
+                  {event.organizer.externalId[0].toUpperCase()}
                 </div>
-                <CardTitle className="text-3xl mb-4">{event.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="px-6 pb-6 space-y-6">
-                {/* Event Details */}
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-gray-600 mt-1" />
-                    <div>
-                      <p className="text-sm text-gray-500">Date & Time</p>
-                      <p className="font-semibold">{eventDate.toLocaleDateString()} at {eventDate.toLocaleTimeString()}</p>
-                    </div>
-                  </div>
-
-                  {!event.isOnline && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-gray-600 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-500">Location</p>
-                        <p className="font-semibold">{event.location}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-gray-600 mt-1" />
-                    <div>
-                      <p className="text-sm text-gray-500">Attendees</p>
-                      <p className="font-semibold">{confirmedRsvpsCount} / {event.capacity} ({spotsLeft} spots left)</p>
-                    </div>
-                  </div>
-
-                      <div className="flex items-start gap-3">
-                        <div>
-                          <p className="text-sm text-gray-500">Price</p>
-                          <p className="font-semibold text-lg">
-                            {(event.price === 0 || event.price <= 0) ? (
-                              <span className="text-[#D4A574]">Free</span>
-                            ) : eventPriceInKES !== null ? (
-                              <>
-                                KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                <span className="text-sm text-gray-500 ml-2">(≈ {event.price.toFixed(2)} USD)</span>
-                              </>
-                            ) : (
-                              <>{event.price.toFixed(2)} USD</>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                </div>
-
-                {/* Description */}
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">About This Event</h3>
-                  <div className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
-                    {event.description.split('\n').map((line, i) => (
-                      <p key={i} className={i > 0 ? 'mt-2' : ''}>{line || '\u00A0'}</p>
-                    ))}
+                  <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Hosted by</p>
+                  <p className="font-semibold text-neutral-900 dark:text-white">{event.organizer.externalId}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description Section */}
+            <div className="prose prose-neutral dark:prose-invert max-w-none">
+              <h3 className="text-xl font-semibold mb-4 text-neutral-900 dark:text-white tracking-tight">About this experience</h3>
+              <div className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed whitespace-pre-wrap">
+                {event.description}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Sticky RSVP Info */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-white dark:bg-[#0c0c0c] border border-black/[0.05] dark:border-white/[0.05] rounded-[32px] p-8 shadow-sm">
+                
+                {/* Time & Location Details */}
+                <div className="space-y-8 mb-10">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-neutral-50 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-neutral-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-neutral-900 dark:text-white">
+                        {eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-neutral-50 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-neutral-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-neutral-900 dark:text-white">
+                        {event.isOnline ? 'Online via Link' : event.location}
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {event.isOnline ? 'Access details sent after RSVP' : 'Physical Location'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-neutral-50 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+                      <Users className="w-5 h-5 text-neutral-400" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-neutral-900 dark:text-white">
+                        {event.capacity - event.rsvps.length} spots remaining
+                      </p>
+                      <p className="text-sm text-neutral-500">
+                        {event.rsvps.length} people attending
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Organizer Info */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500 mb-1">Organized by</p>
-                  <p className="font-semibold">{event.organizer.externalId}</p>
+                {/* Pricing & Call to Action */}
+                <div className="space-y-4 pt-8 border-t border-black/[0.05] dark:border-white/[0.05]">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-neutral-500 font-medium">Admission</span>
+                    <span className="text-2xl font-bold text-neutral-900 dark:text-white">
+                      {event.price === 0 ? 'Free' : `KES ${Math.round(event.price * (sellingRate || 1)).toLocaleString()}`}
+                    </span>
+                  </div>
+
+                  {hasRsvped ? (
+                    <div className="space-y-3">
+                      <div className="w-full bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 py-4 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm">
+                        <CheckCircle2 className="w-5 h-5" />
+                        You&apos;re attending
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="w-full rounded-2xl h-14 font-bold border-black/[0.08]"
+                        onClick={() => window.open(generateGoogleCalendarUrl({ title: event.title, description: event.description, location: event.location, startDate: eventDate }), '_blank')}
+                      >
+                        Add to Calendar
+                      </Button>
+                    </div>
+                  ) : paymentUrl ? (
+                    <Button 
+                      className="w-full rounded-2xl h-14 bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-xl"
+                      onClick={() => window.open(paymentUrl, '_blank')}
+                    >
+                      Complete Payment <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleRsvp} 
+                      disabled={isRsvping}
+                      className="w-full rounded-2xl h-14 bg-black dark:bg-white text-white dark:text-black font-bold shadow-xl hover:scale-[1.01] transition-transform active:scale-95"
+                    >
+                      {isRsvping ? 'Processing...' : 'Register for Event'}
+                    </Button>
+                  )}
+                  
+                  {!user && (
+                    <p className="text-center text-xs text-neutral-400 mt-4 font-medium uppercase tracking-widest">
+                      Sign in to confirm your spot
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
 
-          {/* Sidebar */}
-          <div>
-            <Card className="sticky top-4">
-              <CardContent className="pt-6">
-                {isFull ? (
-                  <Alert>
-                    <AlertDescription>This event is fully booked.</AlertDescription>
-                  </Alert>
-                ) : (
-                  <>
-                    <div className="mb-4">
-                      {(event.price === 0 || event.price <= 0) ? (
-                        <>
-                          <p className="text-3xl font-bold text-[#D4A574]">
-                            Free
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            No payment required
-                          </p>
-                        </>
-                      ) : eventPriceInKES !== null ? (
-                        <>
-                          <p className="text-3xl font-bold text-[#C85D2E]">
-                            KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            ≈ {event.price.toFixed(2)} USD per ticket
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-3xl font-bold text-[#2E8C96]">
-                          {event.price.toFixed(2)} USD
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mb-4 text-sm">
-                      <p className="text-gray-600">
-                        <span className="font-semibold text-[#D4A574]">{spotsLeft}</span> spots available
-                      </p>
-                    </div>
-
-                    {error && (
-                      <Alert variant="destructive" className="mb-4">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    {paymentStatus === 'success' || hasRsvped ? (
-                      <div className="space-y-3">
-                        <Alert className="bg-[#E8D5B7] border-[#D4A574]">
-                          <AlertDescription className="text-[#D4A574]">
-                            You are attending this event.
-                          </AlertDescription>
-                        </Alert>
-                        {emailSent && userEmail && (
-                          <Alert className="bg-blue-50 border-blue-200">
-                            <AlertDescription className="text-blue-800">
-                              📧 A confirmation email has been sent to <strong>{userEmail}</strong>. 
-                              Please check your inbox and spam folder for your receipt and event details.
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                        {(orderId || confirmationCode) && (
-                          <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                            {orderId && (
-                              <div>
-                                <p className="text-sm text-gray-600 mb-1">Order ID:</p>
-                                <p className="font-mono text-sm font-semibold">{orderId}</p>
-                              </div>
-                            )}
-                            {confirmationCode && (
-                              <div>
-                                <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
-                                  <ReceiptText className="w-4 h-4" />
-                                  Confirmation code:
-                                </p>
-                                {confirmationCode.startsWith('http') || confirmationCode.startsWith('https') ? (
-                                  <a
-                                    href={confirmationCode}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="font-mono text-sm font-semibold break-all text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2"
-                                  >
-                                    {confirmationCode}
-                                    <ExternalLink className="w-4 h-4" />
-                                  </a>
-                                ) : (
-                                  <p className="font-mono text-sm font-semibold break-all">
-                                    {confirmationCode.replace(/^#/, '')}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {event && (
-                          <div className="space-y-2">
-                            <Button
-                              onClick={() => {
-                                const calendarUrl = generateGoogleCalendarUrl({
-                                  title: event.title,
-                                  description: event.description,
-                                  location: event.location,
-                                  startDate: new Date(event.date),
-                                });
-                                window.open(calendarUrl, '_blank');
-                              }}
-                              variant="outline"
-                              className="w-full"
-                            >
-                              <Calendar className="w-4 h-4 mr-2" />
-                              Add to Google Calendar
-                            </Button>
-                            <Button
-                              onClick={handleSendTicket}
-                              disabled={sendingTicket || ticketEmailSent}
-                              variant="outline"
-                              className="w-full"
-                            >
-                              <Mail className="w-4 h-4 mr-2" />
-                              {sendingTicket 
-                                ? 'Sending...' 
-                                : ticketEmailSent 
-                                ? 'Ticket Sent ✓' 
-                                : 'Send Ticket to Email'}
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    ) : paymentStatus === 'failed' ? (
-                      <div className="space-y-3">
-                        <Alert variant="destructive">
-                          <AlertDescription>
-                            Payment failed. Please try again.
-                          </AlertDescription>
-                        </Alert>
-                        {walletBalance !== null && walletBalance >= event.price && (
-                          <div className="bg-[#E8D5B7] border border-[#D4A574] rounded-lg p-3 mb-3">
-                            <p className="text-sm text-[#D4A574] mb-2">
-                              💰 Wallet Balance: {walletBalance.toFixed(2)} USD
-                            </p>
-                            <Button
-                              onClick={() => handleRsvp('wallet')}
-                              disabled={isRsvping || !user}
-                              className="w-full bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0"
-                              size="lg"
-                            >
-                              {isRsvping ? 'Processing...' : `Pay with Wallet (${event.price} USD)`}
-                            </Button>
-                          </div>
-                        )}
-                        <Button
-                          onClick={() => handleRsvp('invoice')}
-                          disabled={isRsvping || !user}
-                          className="w-full"
-                          size="lg"
-                          variant={walletBalance !== null && walletBalance >= eventPriceInUSDC ? "outline" : "default"}
-                        >
-                          {isRsvping ? 'Generating payment link...' : 'Try Again - Checkout'}
-                        </Button>
-                      </div>
-                    ) : paymentStatus === 'pending' ? (
-                      <div className="space-y-3">
-                        <Alert>
-                          <AlertDescription>
-                            Payment is being processed. Please wait for confirmation...
-                          </AlertDescription>
-                        </Alert>
-                        <Button
-                          onClick={() => fetchEventDetails()}
-                          className="w-full"
-                          variant="outline"
-                        >
-                          Refresh Status
-                        </Button>
-                      </div>
-                    ) : paymentUrl ? (
-                      <div className="space-y-3">
-                        <Alert>
-                          <AlertDescription>
-                            Click the button below to complete your payment and confirm your RSVP.
-                          </AlertDescription>
-                        </Alert>
-                        <Button
-                          onClick={() => window.open(paymentUrl!, '_blank')}
-                          className="w-full"
-                          size="lg"
-                        >
-                          {(event.price === 0 || event.price <= 0) ? (
-                            <>Complete RSVP</>
-                          ) : eventPriceInKES !== null ? (
-                            <>Pay KES {eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} - Complete RSVP</>
-                          ) : (
-                            <>Pay {event.price.toFixed(2)} USD - Complete RSVP</>
-                          )}
-                        </Button>
-                        <p className="text-xs text-gray-500 text-center">
-                          Your RSVP will be confirmed after payment
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {!(event.price === 0 || event.price <= 0) && walletBalance !== null && buyingRate && (
-                          <div className={`border rounded-lg p-3 mb-3 ${walletBalance >= eventPriceInUSDC ? 'bg-[#E8D5B7] border-[#D4A574]' : 'bg-[#ffffc4] border-[#ffd13f]'}`}>
-                            <p className={`text-sm mb-2 ${walletBalance >= eventPriceInUSDC ? 'text-[#D4A574]' : 'text-[#ffd13f]'}`}>
-                              💰 Wallet Balance: {walletBalance.toFixed(2)} USD
-                              {buyingRate && ` (KES ${(walletBalance * buyingRate).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`}
-                            </p>
-                            {walletBalance >= eventPriceInUSDC ? (
-                              <Button
-                                onClick={() => handleRsvp('wallet')}
-                                disabled={isRsvping || !user}
-                                className="w-full bg-gradient-to-r from-[#C85D2E] to-[#D4A574] hover:from-[#B84A1F] hover:to-[#C8965A] text-white border-0"
-                                size="lg"
-                              >
-                                {isRsvping ? 'Processing...' : (
-                                  eventPriceInKES !== null ? (
-                                    `Pay with Wallet (KES ${eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
-                                  ) : (
-                                    `Pay with Wallet (${event.price.toFixed(2)} USD)`
-                                  )
-                                )}
-                              </Button>
-                            ) : (
-                              <p className="text-xs text-[#ffd13f]">
-                                ⚠️ Insufficient balance. Top up your wallet to pay with balance.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        <Button
-                          onClick={() => handleRsvp('invoice')}
-                          disabled={isRsvping || !user}
-                          className="w-full"
-                          size="lg"
-                          variant={!(event.price === 0 || event.price <= 0) && walletBalance !== null && walletBalance >= eventPriceInUSDC ? "outline" : "default"}
-                        >
-                          {isRsvping ? (
-                            (event.price === 0 || event.price <= 0) ? 'Confirming RSVP...' : 'Generating payment link...'
-                          ) : (
-                            (event.price === 0 || event.price <= 0) ? (
-                              'RSVP for Free'
-                            ) : eventPriceInKES !== null ? (
-                              `Checkout (KES ${eventPriceInKES.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`
-                            ) : (
-                              `Checkout (${event.price.toFixed(2)} USD)`
-                            )
-                          )}
-                        </Button>
-                      </div>
-                    )}
-
-                    {!user && (
-                      <p className="text-xs text-gray-500 mt-2 text-center">
-                        <button
-                          onClick={() => router.push('/auth/login')}
-                          className="text-[#C85D2E] hover:underline"
-                        >
-                          Sign in
-                        </button>
-                        {' '}to RSVP to this event
-                      </p>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
+              {/* Subtle Luma-style Notification */}
+              {error && (
+                <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-2xl border border-red-100 dark:border-red-900/50 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <p className="text-sm text-red-600 font-medium leading-tight">{error}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        </div>
-      </div>
-      <Footer />
-    </>
+      </main>
+    </div>
   );
 }

@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, MapPin, ReceiptText, Hash, ExternalLink, Mail } from 'lucide-react';
+import { 
+  Calendar, MapPin, Mail, 
+  CheckCircle2, Compass 
+} from 'lucide-react';
 import Image from 'next/image';
 
 interface RSVP {
@@ -18,16 +20,13 @@ interface RSVP {
     title: string;
     date: string;
     location: string;
-    price: number; // Price is now in KES
+    price: number;
     isOnline: boolean;
-    image?: string | null; // Added image
+    image?: string | null;
   };
   status: string;
   createdAt: string;
-  receiptNumber?: string | null; // M-Pesa receipt
-  transactionCode?: string | null; // Transaction hash/URL
-  ticketEmailSent?: boolean; // Track if ticket email was sent
-  orderId?: string | null; // Order ID
+  ticketEmailSent?: boolean;
 }
 
 export default function MyRSVPsPage() {
@@ -35,268 +34,176 @@ export default function MyRSVPsPage() {
   const { user, bearerToken } = useAuth();
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sellingRate, setSellingRate] = useState<number | null>(null);
-  const [sendingTicket, setSendingTicket] = useState<string | null>(null); // Track which RSVP is sending ticket
+  const [sendingTicket, setSendingTicket] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+    if (!user) { router.push('/auth/login'); return; }
     fetchRSVPs();
-    fetchExchangeRate();
   }, [user, bearerToken, router]);
-
-  const fetchExchangeRate = async () => {
-    try {
-      const response = await fetch('/api/exchange-rate');
-      if (response.ok) {
-        const data = await response.json();
-        setSellingRate(data.sellingRate || data.rate || null);
-      }
-    } catch (err) {
-      console.error('Error fetching exchange rate:', err);
-    }
-  };
 
   const fetchRSVPs = async () => {
     if (!bearerToken) return;
     try {
       setIsLoading(true);
       const response = await fetch('/api/rsvps', {
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-        },
+        headers: { 'Authorization': `Bearer ${bearerToken}` },
       });
-      if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
       setRsvps(data);
-    } catch (error) {
-      console.error('Error fetching RSVPs:', error);
-    } finally {
-      setIsLoading(false);
+    } catch (error) { 
+      console.error('Error fetching RSVPs:', error); 
+    } finally { 
+      setIsLoading(false); 
     }
   };
 
   const handleSendTicket = async (eventId: string) => {
     if (!bearerToken) return;
-    
     setSendingTicket(eventId);
     try {
       const response = await fetch(`/api/rsvps/${eventId}/send-ticket`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${bearerToken}`,
-        },
+        headers: { 'Authorization': `Bearer ${bearerToken}` },
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.alreadySent) {
-          alert('Ticket email has already been sent. Please check your inbox and spam folder.');
-        } else {
-          alert(data.error || 'Failed to send ticket email');
-        }
-        return;
+      if (response.ok) {
+        await fetchRSVPs();
       }
-
-      // Refresh RSVPs to update ticketEmailSent status
-      await fetchRSVPs();
-      alert('Ticket email sent successfully! Please check your inbox and spam folder.');
-    } catch (error) {
-      console.error('Error sending ticket:', error);
-      alert('Failed to send ticket email. Please try again.');
-    } finally {
-      setSendingTicket(null);
+    } catch (error) { 
+      console.error('Error sending ticket:', error); 
+    } finally { 
+      setSendingTicket(null); 
     }
   };
 
-  return (
-    <>
-      <Navigation />
-      <div className="min-h-screen bg-[#E9F1F4] py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-gray-900">My RSVPs</h1>
+  if (isLoading) return (
+    <div className="min-h-screen bg-white flex items-center justify-center text-neutral-400 font-medium">
+      Loading your schedule...
+    </div>
+  );
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Loading your RSVPs...</p>
+  return (
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 flex flex-col relative">
+      {/* Z-INDEX FIX: Ensure Navigation is fixed at the very top 
+          of the stack with a higher z-index than main content. 
+      */}
+      <div className="fixed top-0 left-0 right-0 z-[100] w-full pointer-events-none">
+        <Navigation />
+      </div>
+      
+      {/* PADDING FIX: Added pt-40 to prevent content from hitting the 
+          floating navbar and ensuring a clean Luma-style "safe area".
+      */}
+      <main className="flex-1 max-w-[1000px] mx-auto px-6 pt-40 pb-32 w-full relative z-10">
+        <header className="mb-16 space-y-2 text-center md:text-left">
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-neutral-900 dark:text-white">
+            My RSVPs
+          </h1>
+          <p className="text-lg text-neutral-500 font-medium italic font-serif">Your upcoming experiences.</p>
+        </header>
+
+        {rsvps.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-32 text-center space-y-6">
+            <div className="w-16 h-16 bg-neutral-100 dark:bg-white/5 rounded-full flex items-center justify-center">
+               <Compass className="w-8 h-8 text-neutral-300" />
+            </div>
+            <div className="space-y-2">
+                <p className="text-neutral-900 dark:text-white font-semibold">No tickets yet.</p>
+                <p className="text-neutral-500 text-sm">Discover your first event today.</p>
+            </div>
+            <Button 
+                onClick={() => router.push('/events')}
+                className="rounded-full bg-black dark:bg-white text-white dark:text-black px-8 font-bold h-12"
+            >
+                Browse Events
+            </Button>
           </div>
-        ) : rsvps.length === 0 ? (
-          <Card>
-            <CardContent className="pt-6">
-              <Alert>
-                <AlertDescription>
-                  You haven't RSVPed to any events yet.{' '}
-                  <Button
-                    variant="link"
-                    onClick={() => router.push('/events')}
-                    className="p-0"
-                  >
-                    Browse events
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
         ) : (
-          <div className="grid gap-6">
-            {rsvps.map(rsvp => {
+          <div className="space-y-12">
+            {rsvps.map((rsvp, index) => {
               const eventDate = new Date(rsvp.event.date);
-              const isUpcoming = eventDate > new Date();
+              const isPast = eventDate < new Date();
 
               return (
-                <Card key={rsvp.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden border border-[#E9F1F4] hover:border-[#C85D2E]">
-                  {rsvp.event.image && (
-                    <div className="relative w-full h-72 overflow-hidden bg-gradient-to-br from-[#C85D2E] to-[#D4A574]">
-                      <Image src={rsvp.event.image} alt={rsvp.event.title} fill className="object-cover" />
+                <motion.div 
+                    key={rsvp.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className={`group flex flex-col md:flex-row gap-8 items-start pb-12 border-b border-black/[0.03] dark:border-white/[0.03] ${isPast ? 'opacity-50' : ''}`}
+                >
+                  <div className="relative w-full md:w-48 aspect-[4/5] rounded-[32px] overflow-hidden bg-neutral-100 dark:bg-neutral-900/40 p-4 flex items-center justify-center flex-shrink-0 transition-all group-hover:bg-neutral-200/50">
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm bg-white dark:bg-neutral-800">
+                      <Image 
+                        src={rsvp.event.image || '/placeholder.jpeg'} 
+                        alt={rsvp.event.title} 
+                        fill 
+                        className="object-contain" 
+                      />
                     </div>
-                  )}
-                  {!rsvp.event.image && (
-                    <div className="relative w-full h-64 rounded-t-lg overflow-hidden bg-gradient-to-br from-[#C85D2E] to-[#D4A574] flex items-center justify-center">
-                      <Calendar className="h-16 w-16 text-white/20" />
-                    </div>
-                  )}
-                  <CardHeader>
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <CardTitle className="text-2xl mb-2">{rsvp.event.title}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                            rsvp.status === 'CONFIRMED' 
-                              ? 'text-[#30a46c] bg-[#adddc0]' 
-                              : rsvp.status === 'PENDING'
-                              ? 'text-[#ffd13f] bg-[#ffffc4]'
-                              : 'text-gray-600 bg-gray-100'
-                          }`}>
-                            {rsvp.status === 'CONFIRMED' ? '✓ Confirmed' : rsvp.status === 'PENDING' ? '⏳ Pending' : rsvp.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {isUpcoming ? (
-                          <span className="text-xs font-semibold text-[#30a46c] bg-[#adddc0] px-3 py-1 rounded-full">
-                            Upcoming
-                          </span>
-                        ) : (
-                          <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                            Past Event
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="flex items-center gap-3 text-gray-600">
-                        <Calendar className="w-5 h-5" />
-                        <div>
-                          <p className="text-sm text-gray-500">Date</p>
-                          <p className="font-semibold">{eventDate.toLocaleDateString()}</p>
-                        </div>
-                      </div>
+                  </div>
 
-                      {!rsvp.event.isOnline && (
-                        <div className="flex items-center gap-3 text-gray-600">
-                          <MapPin className="w-5 h-5" />
-                          <div>
-                            <p className="text-sm text-gray-500">Location</p>
-                            <p className="font-semibold">{rsvp.event.location}</p>
-                          </div>
+                  <div className="flex-grow space-y-4 w-full">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3 mb-2">
+                             <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full ${
+                                rsvp.status === 'CONFIRMED' 
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30' 
+                                : 'bg-orange-100 text-orange-600 dark:bg-orange-950/30'
+                            }`}>
+                                {rsvp.status}
+                            </span>
+                            {isPast && <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 italic">Past Event</span>}
                         </div>
-                      )}
-
-                      <div className="flex items-center gap-3 text-gray-600">
-                        <div>
-                          <p className="text-sm text-gray-500">Price Paid</p>
-                          <p className="font-semibold">
-                            {/* Price is stored in USD, convert to KES for display using selling_rate */}
-                            {sellingRate ? (
-                              <>
-                                KES {(rsvp.event.price * sellingRate).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                <span className="text-sm text-gray-500 ml-2">(≈ {rsvp.event.price.toFixed(2)} USD)</span>
-                              </>
-                            ) : (
-                              <>{rsvp.event.price.toFixed(2)} USD</>
-                            )}
-                          </p>
-                        </div>
-                      </div>
+                        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white transition-colors">
+                            {rsvp.event.title}
+                        </h2>
                     </div>
 
-                    {rsvp.status === 'CONFIRMED' && (rsvp.orderId || rsvp.receiptNumber || rsvp.transactionCode) && (
-                      <div className="bg-gray-50 p-3 rounded-lg space-y-3">
-                        {rsvp.orderId && (
-                          <div>
-                            <p className="text-sm text-gray-600 mb-1">Order ID:</p>
-                            <p className="font-mono text-sm font-semibold">{rsvp.orderId}</p>
-                          </div>
-                        )}
-                        {(rsvp.receiptNumber || rsvp.transactionCode) && (
-                          <div>
-                            <p className="text-sm text-gray-600 mb-1 flex items-center gap-2">
-                              <ReceiptText className="w-4 h-4" />
-                              Confirmation code:
-                            </p>
-                            {rsvp.receiptNumber ? (
-                              <p className="font-mono text-sm font-semibold break-all">
-                                {rsvp.receiptNumber}
-                              </p>
-                            ) : rsvp.transactionCode ? (
-                              rsvp.transactionCode.startsWith('http') || rsvp.transactionCode.startsWith('https') ? (
-                                <a
-                                  href={rsvp.transactionCode}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="font-mono text-sm font-semibold break-all text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2"
-                                >
-                                  {rsvp.transactionCode}
-                                  <ExternalLink className="w-4 h-4" />
-                                </a>
-                              ) : (
-                                <p className="font-mono text-sm font-semibold break-all">
-                                  {rsvp.transactionCode.replace(/^#/, '')}
-                                </p>
-                              )
-                            ) : null}
-                          </div>
-                        )}
-                      </div>
-                    )} 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3 text-sm font-medium text-neutral-500">
+                            <Calendar className="w-4 h-4" />
+                            {eventDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm font-medium text-neutral-500">
+                            <MapPin className="w-4 h-4" />
+                            {rsvp.event.isOnline ? 'Virtual Experience' : rsvp.event.location}
+                        </div>
+                    </div>
 
-                    <div className="flex gap-2 pt-4 border-t border-gray-200">
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push(`/events/${rsvp.event.id}`)}
-                      >
-                        View Event Details
-                      </Button>
-                      {rsvp.status === 'CONFIRMED' && (
-                        <Button
-                          variant="outline"
-                          onClick={() => handleSendTicket(rsvp.event.id)}
-                          disabled={sendingTicket === rsvp.event.id || rsvp.ticketEmailSent}
-                          className="flex items-center gap-2"
+                    <div className="flex flex-wrap items-center gap-4 pt-4">
+                        <Button 
+                            variant="outline"
+                            onClick={() => router.push(`/events/${rsvp.event.id}`)}
+                            className="rounded-full h-10 px-6 border-black/[0.08] dark:border-white/[0.08] text-xs font-bold uppercase tracking-wider transition-all hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                         >
-                          <Mail className="w-4 h-4" />
-                          {sendingTicket === rsvp.event.id 
-                            ? 'Sending...' 
-                            : rsvp.ticketEmailSent 
-                            ? 'Ticket Sent ✓' 
-                            : 'Send Ticket to Email'}
+                            Details
                         </Button>
-                      )}
+                        
+                        {rsvp.status === 'CONFIRMED' && !isPast && (
+                            <Button
+                                onClick={() => handleSendTicket(rsvp.event.id)}
+                                disabled={sendingTicket === rsvp.event.id || rsvp.ticketEmailSent}
+                                variant="ghost"
+                                className="rounded-full h-10 px-6 text-xs font-bold uppercase tracking-wider text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/20"
+                            >
+                                <Mail className="w-4 h-4 mr-2" />
+                                {sendingTicket === rsvp.event.id 
+                                    ? 'Sending...' 
+                                    : rsvp.ticketEmailSent 
+                                    ? 'Ticket Sent' 
+                                    : 'Email Ticket'}
+                            </Button>
+                        )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </motion.div>
               );
             })}
           </div>
         )}
-      </div>
-      </div>
+      </main>
+
       <Footer />
-    </>
+    </div>
   );
 }

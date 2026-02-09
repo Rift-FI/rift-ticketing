@@ -1,598 +1,184 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
 import { HeroSection } from '@/components/hero-section';
 import { Button } from '@/components/ui/button';
-import { Search, Calendar, Users, Zap, Shield, CheckCircle, Clock, DollarSign, Smartphone, Globe, Lock, ArrowRight, HelpCircle, ChevronDown, Wallet } from 'lucide-react';
+import { ChevronDown, Plus, ArrowRight, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { EventCreationIllustration, PaymentIllustration, SharingIllustration, CommunityIllustration } from '@/components/illustrations';
-import { HowItWorksOrganizerIllustration, HowItWorksAttendeeIllustration, SecurityIllustration, BenefitsAttendeeIllustration } from '@/components/more-illustrations';
 
 interface Event {
   id: string;
   title: string;
   description: string;
   date: string;
-  price: number; // Price is stored in USD
-  rsvps: { id: string; status: string }[];
   category: string;
   image?: string | null;
 }
 
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+export default function HomePage() {
+  const { user } = useAuth();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const faqs = [
-    {
-      question: 'How do I create and publish an event?',
-      answer: 'Navigate to "Create Event" from the main menu, complete the event information form including title, description, date, venue, pricing, and capacity. Upload a high-quality image and publish. Your event will be live within seconds.',
-      icon: Calendar,
-    },
-    {
-      question: 'What payment methods are supported?',
-      answer: 'We support M-Pesa for local mobile money transactions and USDC for cryptocurrency payments. Both payment methods are processed securely and provide instant confirmation.',
-      icon: DollarSign,
-    },
-    {
-      question: 'How do I access my event revenue?',
-      answer: 'All ticket sales are automatically deposited into your Hafla wallet. You can withdraw funds at any time to your connected wallet address with no waiting periods or minimum thresholds.',
-      icon: Wallet,
-    },
-    {
-      question: 'What are the platform fees?',
-      answer: 'Event creation and discovery are completely free. Standard payment processing fees apply based on the payment method selected by attendees, with transparent pricing displayed at checkout.',
-      icon: HelpCircle,
-    },
-    {
-      question: 'How can I promote my event?',
-      answer: 'Each event includes a unique, shareable link optimized for all major social platforms including WhatsApp, Telegram, Twitter/X, Facebook, and LinkedIn. Share directly from your event management dashboard.',
-      icon: Globe,
-    },
-    {
-      question: 'How are tickets delivered to attendees?',
-      answer: 'Attendees receive an automated email confirmation immediately after successful payment, containing their ticket details and event information. Tickets can be re-sent on-demand from the event page.',
-      icon: CheckCircle,
-    },
-  ];
+  useEffect(() => {
+    const fetchFeaturedEvents = async () => {
+      try {
+        const response = await fetch('/api/events');
+        const data = await response.json();
+        setEvents(data.slice(0, 4));
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFeaturedEvents();
+  }, []);
 
   return (
-    <div className="space-y-4">
-      {faqs.map((faq, index) => {
-        const Icon = faq.icon;
-        const isOpen = openIndex === index;
-        return (
-          <motion.div
-            key={index}
-            className="rounded-xl border border-[#E9F1F4] bg-white overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-          >
-            <button
-              onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="w-full p-6 flex items-center justify-between gap-4 text-left hover:bg-[#F8F9FA] transition-colors"
-            >
-              <div className="flex items-center gap-4 flex-1">
-                <div className="flex-shrink-0">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#C85D2E]/10">
-                    <Icon className="h-5 w-5 text-[#C85D2E]" />
-                  </div>
-                </div>
-                <h3 className="font-semibold text-[#1F2D3A] flex-1">{faq.question}</h3>
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 flex flex-col">
+      <Navigation />
+      
+      {/* Hero Section - Framed by the fixed Navigation */}
+      <div className="relative h-[90vh] md:h-screen z-0">
+         <HeroSection />
+      </div>
+
+      {/* Main Content Area - Z-index context prevents bleeding */}
+      <main className="relative z-10 max-w-[1200px] mx-auto px-6 space-y-24 md:space-y-40 pb-32">
+        
+        {/* 1. Featured Events - The "Postcard" Grid */}
+        <section className="pt-12 md:pt-0">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-500 font-bold text-[10px] uppercase tracking-[0.25em]">
+                <Sparkles className="w-3.5 h-3.5" />
+                Curated
               </div>
-              <ChevronDown
-                className={`h-5 w-5 text-[#4A5568] transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-            {isOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                <div className="px-6 pb-6 pl-20">
-                  <p className="text-sm text-[#4A5568] leading-relaxed">{faq.answer}</p>
-                </div>
-              </motion.div>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]">
+                Discover <br className="hidden md:block" /> what&apos;s next.
+              </h2>
+            </div>
+            <Link href="/events" className="group flex items-center text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-black dark:hover:text-white transition-colors pb-1">
+              View all events <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+            {isLoading ? (
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="aspect-[4/5] rounded-[32px] bg-neutral-200/50 dark:bg-neutral-900/50 animate-pulse" />
+              ))
+            ) : (
+              events.map((event) => (
+                <Link key={event.id} href={`/events/${event.id}`} className="group flex flex-col">
+                  {/* Image: Padded frame with object-contain for full visibility */}
+                  <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-white dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.03] mb-6 p-6 md:p-8 flex items-center justify-center transition-all duration-500 group-hover:shadow-2xl group-hover:shadow-black/[0.05] group-hover:-translate-y-1">
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm">
+                      <Image 
+                        src={event.image || '/placeholder.jpeg'} 
+                        alt={event.title} 
+                        fill 
+                        className="object-contain" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 px-1">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600 dark:text-orange-500">
+                        {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {event.category}
+                    </div>
+                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-white leading-tight tracking-tight truncate">
+                      {event.title}
+                    </h3>
+                  </div>
+                </Link>
+              ))
             )}
-          </motion.div>
-        );
-      })}
+          </div>
+        </section>
+
+        {/* 2. Attendee-Focused FAQ Section */}
+        <section className="max-w-2xl mx-auto w-full px-2">
+            <h2 className="text-3xl md:text-4xl font-semibold text-center mb-16 tracking-tighter text-neutral-900 dark:text-white">
+              Joining an Event
+            </h2>
+            <div className="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
+              <AttendeeFAQ />
+            </div>
+        </section>
+
+        {/* 3. Final Mobile-Responsive CTA */}
+        <section className="relative rounded-[40px] md:rounded-[64px] bg-black dark:bg-white p-12 md:p-32 overflow-hidden text-center group">
+            <div className="relative z-10 space-y-10 md:space-y-14">
+                <h2 className="text-4xl md:text-8xl font-semibold text-white dark:text-black tracking-tighter leading-[0.9]">
+                    Ready to bring <br /> people together?
+                </h2>
+                <div className="flex justify-center">
+                    <Link href="/events/create">
+                        <Button size="lg" className="rounded-full bg-orange-600 hover:bg-orange-700 text-white px-12 h-16 md:h-20 text-lg md:text-xl font-bold shadow-2xl transition-transform hover:scale-105 active:scale-95">
+                            <Plus className="w-6 h-6 mr-3 stroke-[3]" />
+                            Create your event
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+            {/* Optimized Background Orbs */}
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-orange-600/20 blur-[120px] rounded-full" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-orange-500/10 blur-[100px] rounded-full" />
+        </section>
+
+      </main>
+
+      <Footer />
     </div>
   );
 }
 
-export default function HomePage() {
-  const { user, bearerToken } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [sellingRate, setSellingRate] = useState<number | null>(null); // For displaying ticket prices in KES
-
-  useEffect(() => {
-    fetchFeaturedEvents();
-    fetchExchangeRate(); // Fetch exchange rate regardless of auth status
-  }, []);
-
-  const fetchExchangeRate = async () => {
-    try {
-      const response = await fetch('/api/exchange-rate');
-      if (response.ok) {
-        const data = await response.json();
-        setSellingRate(data.sellingRate || data.rate || null);
-      } else {
-        console.error('Failed to fetch exchange rate');
-        setSellingRate(null);
-      }
-    } catch (err) {
-      console.error('Error fetching exchange rate:', err);
-      setSellingRate(null);
-    }
-  };
-
-  const fetchFeaturedEvents = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/events');
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
-      setEvents(data.slice(0, 6));
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+function AttendeeFAQ() {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  
+  const faqs = [
+    { q: "How do I get my tickets?", a: "Your tickets are sent immediately to your email after booking. You can also find them under 'My RSVPs' in your Hafla dashboard." },
+    { q: "What payment methods are supported?", a: "We support M-Pesa for local mobile money and USDC for global crypto payments. Both are instant and secure." },
+    { q: "Can I cancel my registration?", a: "Host-specific refund policies apply. Check the 'About' section on the event page to see the organizer's policy." },
+    { q: "Do I need an account to browse?", a: "Not at all. You can explore all featured events freely. You'll only need to log in to manage your tickets or wallet." }
+  ];
 
   return (
-    <div className="relative min-h-screen">
-      <Navigation />
-      {/* Hero - extends behind navbar */}
-      <div className="absolute inset-0 z-0">
-        <HeroSection />
-      </div>
-      <main className="relative z-10 flex flex-col pt-[90vh]">
-
-        {/* Why Hafla */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8 bg-white"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why choose Hafla</h2>
-              <p className="text-sm sm:text-base text-[#4A5568]">
-                A comprehensive platform designed to connect you with events that enrich your life and expand your community.
-              </p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
-                whileHover={{ y: -6 }}
+    <>
+      {faqs.map((faq, i) => (
+        <div key={i} className="py-2">
+          <button 
+            onClick={() => setOpenIndex(openIndex === i ? null : i)}
+            className="w-full py-8 flex justify-between items-center text-left group"
+          >
+            <span className="text-xl md:text-2xl font-semibold text-neutral-800 dark:text-neutral-200 group-hover:opacity-60 transition-opacity tracking-tight">
+              {faq.q}
+            </span>
+            <ChevronDown className={`w-5 h-5 text-neutral-400 transition-transform duration-500 ${openIndex === i ? 'rotate-180' : ''}`} />
+          </button>
+          <AnimatePresence>
+            {openIndex === i && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }} 
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
               >
-                <div className="relative h-48 w-full">
-                  <Image
-                    src="/africa0.jpeg"
-                    alt="Discover events"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
-                <div className="p-6">
-                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Curated event discovery</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Explore a diverse range of events filtered by category, location, and date. Find experiences tailored to your interests.
-                  </p>
-                </div>
-              </motion.div>
-              <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
-                whileHover={{ y: -6 }}
-              >
-                <div className="relative h-48 w-full">
-                  <Image
-                    src="/africa4.jpeg"
-                    alt="Instant booking"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
-                <div className="p-6">
-                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Seamless booking experience</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Reserve your spot in seconds. Receive immediate confirmation and digital tickets via email.
-                  </p>
-                </div>
-              </motion.div>
-              <motion.div
-                className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all"
-                whileHover={{ y: -6 }}
-              >
-                <div className="relative h-48 w-full">
-                  <Image
-                    src="/africaimage1.jpeg"
-                    alt="Secure payments"
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
-                <div className="p-6">
-                  <h3 className="font-semibold mb-2 text-[#1F2D3A]">Enterprise-grade security</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Your data is protected with industry-leading security measures. Your information remains secure and private at all times.
-                  </p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Featured Events Section */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 sm:mb-12 gap-4">
-              <div>
-                <h2 className="text-3xl font-bold text-[#1F2D3A]">Featured events</h2>
-                <p className="text-sm text-[#4A5568] mt-1">
-                  Handpicked events from our community. Reserve your spot with a single tap.
+                <p className="pb-10 text-neutral-500 text-lg md:text-xl leading-relaxed max-w-xl font-medium">
+                  {faq.a}
                 </p>
-              </div>
-              <Link href="/events">
-                <Button variant="outline" className="border-[#C85D2E] text-[#C85D2E] hover:bg-[#C85D2E] hover:text-white">
-                  View all events
-                </Button>
-              </Link>
-            </div>
-
-            {isLoading ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl border border-gray-200 h-64 bg-slate-100 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : events.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {events.map((event, index) => {
-                  const confirmedRsvpsCount = event.rsvps.filter(r => r.status === 'CONFIRMED').length;
-                  return (
-                    <motion.div
-                      key={event.id}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ duration: 0.4, delay: index * 0.05 }}
-                      whileHover={{ y: -6 }}
-                    >
-                      <Link href={`/events/${event.id}`}>
-                        <div className="group overflow-hidden rounded-2xl border border-[#E9F1F4] bg-white transition-all hover:shadow-xl hover:border-[#C85D2E] h-full flex flex-col">
-                          {event.image ? (
-                            <div className="relative h-44 w-full overflow-hidden">
-                              <Image
-                                src={event.image}
-                                alt={event.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center gap-2">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#C85D2E]">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4A574]" />
-                                  {event.category}
-                                </div>
-                                <div className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white">
-                                  {confirmedRsvpsCount} going
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                              <div className="relative h-44 w-full overflow-hidden bg-gradient-to-r from-[#C85D2E] to-[#D4A574]">
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <Calendar className="h-12 w-12 text-white/30" />
-                              </div>
-                              <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center gap-2">
-                                <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-medium text-[#C85D2E]">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#D4A574]" />
-                                  {event.category}
-                                </div>
-                                <div className="rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white">
-                                  {confirmedRsvpsCount} going
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <div className="p-4 flex flex-col flex-1 space-y-2">
-                            <h3 className="font-semibold line-clamp-2 group-hover:text-[#C85D2E] transition-colors text-[#1F2D3A]">
-                              {event.title}
-                            </h3>
-                            <p className="text-xs text-[#4A5568] line-clamp-2 flex-1">
-                              {event.description}
-                            </p>
-                            <div className="mt-3 flex items-center justify-between pt-3 border-t border-[#E9F1F4]">
-                              {/* Price is stored in USD, convert to KES for display */}
-                              <div className="text-sm font-semibold text-[#C85D2E]">
-                                {sellingRate ? (
-                                  <>
-                                    KES{' '}
-                                    {(event.price * sellingRate).toLocaleString('en-KE', {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}
-                                    <span className="text-xs text-gray-500 ml-1">
-                                      (≈ {event.price.toFixed(2)} USD)
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span>{event.price.toFixed(2)} USD</span>
-                                )}
-                              </div>
-                              <div className="text-[11px] text-[#4A5568]">
-                                {confirmedRsvpsCount} attendees
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No events available yet</p>
-              </div>
+              </motion.div>
             )}
-          </div>
-        </motion.section>
-
-        {/* How It Works */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8 bg-white"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">How it works</h2>
-              <p className="text-sm sm:text-base text-[#4A5568]">
-                Find and book events in three simple steps. Browse, book, and attend—it's that easy.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
-                <Image
-                  src="/africa0.jpeg"
-                  alt="Browse events"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10">
-                      <Search className="h-6 w-6 text-[#C85D2E]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Browse events</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Explore events by category, location, and date. Find exactly what you're looking for.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10">
-                      <Calendar className="h-6 w-6 text-[#D4A574]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Book your ticket</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Pay with M-Pesa or USDC. Get instant confirmation and email tickets delivered to your inbox.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10">
-                      <CheckCircle className="h-6 w-6 text-[#D97706]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Attend & enjoy</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Show up and have an amazing time. Your ticket is stored securely and accessible anytime.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Benefits for Attendees */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8 bg-[#F8F9FA]"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Why attendees love Hafla</h2>
-              <p className="text-sm sm:text-base text-[#4A5568]">
-                A seamless experience from discovery to attendance. Pay how you want, get instant confirmation.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10">
-                      <Search className="h-6 w-6 text-[#C85D2E]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Easy discovery</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Browse events by category, location, and date. Find exactly what you're looking for.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10">
-                      <Smartphone className="h-6 w-6 text-[#D4A574]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Pay with M-Pesa or USDC</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Choose your preferred payment method. M-Pesa for local convenience, USDC for crypto users.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10">
-                      <CheckCircle className="h-6 w-6 text-[#D97706]" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-[#1F2D3A] mb-2">Instant confirmation</h3>
-                    <p className="text-sm text-[#4A5568]">
-                      Get your ticket confirmation immediately. Receive email tickets and manage your RSVPs in one place.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
-                <Image
-                  src="/africa4.jpeg"
-                  alt="Event experience"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Security & Trust */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8 bg-white"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Secure & reliable</h2>
-              <p className="text-sm sm:text-base text-[#4A5568]">
-                Your events and payments are protected with industry-leading security.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="relative h-64 lg:h-80 rounded-2xl overflow-hidden">
-                <Image
-                  src="/africaimage1.jpeg"
-                  alt="Secure platform"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10 mb-4">
-                    <Shield className="h-6 w-6 text-[#C85D2E]" />
-                  </div>
-                  <h3 className="font-semibold text-[#1F2D3A] mb-2">Secure payments</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    All transactions are encrypted and processed securely through trusted payment providers.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4A574]/10 mb-4">
-                    <Lock className="h-6 w-6 text-[#D4A574]" />
-                  </div>
-                  <h3 className="font-semibold text-[#1F2D3A] mb-2">Data protection</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Your personal information and event data are protected with industry-standard security measures.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D97706]/10 mb-4">
-                    <Clock className="h-6 w-6 text-[#D97706]" />
-                  </div>
-                  <h3 className="font-semibold text-[#1F2D3A] mb-2">Instant settlement</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Get paid immediately. No waiting periods or holds—withdraw to your wallet as soon as payments come in.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-[#E9F1F4] bg-[#F8F9FA] p-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#C85D2E]/10 mb-4">
-                    <Globe className="h-6 w-6 text-[#C85D2E]" />
-                  </div>
-                  <h3 className="font-semibold text-[#1F2D3A] mb-2">Global reach</h3>
-                  <p className="text-sm text-[#4A5568]">
-                    Accept payments from anywhere. M-Pesa for local markets, USDC for international attendees.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* FAQ Section */}
-        <motion.section
-          className="px-4 py-20 sm:px-6 lg:px-8 bg-[#F8F9FA]"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="mx-auto max-w-4xl">
-            <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-              <h2 className="text-3xl font-bold text-[#1F2D3A]">Frequently asked questions</h2>
-              <p className="text-sm sm:text-base text-[#4A5568]">
-                Everything you need to know about using Hafla for your events.
-              </p>
-            </div>
-            <FAQSection />
-          </div>
-        </motion.section>
-
-        <Footer />
-      </main>
-    </div>
+          </AnimatePresence>
+        </div>
+      ))}
+    </>
   );
 }

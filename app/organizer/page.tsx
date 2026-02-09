@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth-context';
 import { Navigation } from '@/components/navigation';
+import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Edit, Trash2, Users, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, TrendingUp, Calendar, MapPin, LayoutDashboard } from 'lucide-react';
 
 interface Event {
   id: string;
@@ -30,29 +31,19 @@ export default function OrganizerPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/login');
-    }
+    if (!authLoading && !user) router.push('/auth/login');
   }, [authLoading, user, router]);
 
   useEffect(() => {
-    if (!user || !bearerToken) {
-      return;
-    }
+    if (!user || !bearerToken) return;
 
     const loadEvents = async () => {
       try {
         const response = await fetch('/api/events', {
-          headers: {
-            'Authorization': `Bearer ${bearerToken}`,
-          },
+          headers: { 'Authorization': `Bearer ${bearerToken}` },
         });
-        if (!response.ok) throw new Error('Failed to fetch events');
         const allEvents = await response.json();
-        // Filter events by organizer (you may want to create a dedicated API endpoint)
-        const organizerEvents = allEvents.filter(
-          (e: any) => e.organizer?.id === user.id
-        );
+        const organizerEvents = allEvents.filter((e: any) => e.organizer?.id === user.id);
         setEvents(organizerEvents);
       } catch (error) {
         console.error('Error loading events:', error);
@@ -60,258 +51,129 @@ export default function OrganizerPage() {
         setIsLoading(false);
       }
     };
-
     loadEvents();
   }, [user, bearerToken]);
 
   const totalRevenue = events.reduce((sum, e) => sum + e.rsvps.length * e.price, 0);
   const totalAttendees = events.reduce((sum, e) => sum + e.rsvps.length, 0);
 
-  if (authLoading || isLoading) {
-    return (
-      <>
-        <Navigation />
-        <main className="min-h-screen bg-background px-4 py-12">
-          <div className="mx-auto max-w-6xl">
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 rounded-lg bg-muted animate-pulse" />
-              ))}
-            </div>
-          </div>
-        </main>
-      </>
-    );
-  }
-
-  if (user?.role !== 'ORGANIZER') {
-    return (
-      <>
-        <Navigation />
-        <main className="min-h-screen bg-background">
-          <div className="mx-auto max-w-4xl px-4 py-12 text-center">
-            <h1 className="text-2xl font-bold mb-4">
-              Not authorized
-            </h1>
-            <p className="text-muted-foreground mb-6">
-              You need to be an organizer to access this page.
-            </p>
-            <Link href="/">
-              <Button>Go Home</Button>
-            </Link>
-          </div>
-        </main>
-      </>
-    );
-  }
+  if (authLoading || isLoading) return (
+    <div className="min-h-screen bg-white flex items-center justify-center text-neutral-400 font-medium tracking-widest uppercase text-xs">
+      Syncing Dashboard...
+    </div>
+  );
 
   return (
-    <>
+    <div className="min-h-screen bg-[#fafafa] dark:bg-[#050505] selection:bg-orange-100 flex flex-col">
       <Navigation />
-      <main className="min-h-screen bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold">My Events</h1>
-              <p className="text-muted-foreground">
-                Manage and track your organized events
-              </p>
+
+      {/* Main Content: pt-32 ensures space for the floating Navigation */}
+      <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 pt-32 pb-32">
+        
+        {/* Luma Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-6xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-none">
+              Manage Events
+            </h1>
+            <p className="text-lg text-neutral-500 font-medium italic font-serif">Track your community growth.</p>
+          </div>
+          <Link href="/organizer/create">
+            <Button className="rounded-full bg-black dark:bg-white text-white dark:text-black font-bold px-8 h-12 shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+              <Plus className="w-5 h-5 mr-2 stroke-[3]" />
+              New Event
+            </Button>
+          </Link>
+        </div>
+
+        {/* Stats: Borderless Luma Style */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20 border-y border-black/[0.05] dark:border-white/[0.05] py-12">
+          {[
+            { label: 'Events Organized', value: events.length, icon: LayoutDashboard },
+            { label: 'Total Attendees', value: totalAttendees, icon: Users },
+            { label: 'Estimated Revenue', value: `$${totalRevenue.toLocaleString()}`, icon: TrendingUp }
+          ].map((stat, i) => (
+            <div key={i} className="space-y-3">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                <stat.icon className="w-3 h-3" /> {stat.label}
+              </div>
+              <div className="text-4xl font-semibold tracking-tighter text-neutral-900 dark:text-white">
+                {stat.value}
+              </div>
             </div>
+          ))}
+        </div>
+
+        {/* Events Grid: Postcard Style */}
+        {events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+            <p className="text-neutral-500 font-medium">You haven&apos;t organized any events yet.</p>
             <Link href="/organizer/create">
-              <Button className="gap-2">
-                <Plus className="h-5 w-5" />
-                Create Event
-              </Button>
+              <Button variant="outline" className="rounded-full border-black/[0.1] px-8 font-bold">Start Hosting</Button>
             </Link>
           </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16">
+            {events.map((event) => (
+              <motion.div 
+                key={event.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="group flex flex-col"
+              >
+                {/* Event Image: Smaller, padded frame */}
+                <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-neutral-100 dark:bg-neutral-900/40 mb-6 p-6 flex items-center justify-center transition-all group-hover:bg-neutral-200/50">
+                  <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm">
+                    <Image 
+                      src={event.image || '/placeholder.jpeg'} 
+                      alt={event.title} 
+                      fill 
+                      className="object-contain" 
+                    />
+                  </div>
+                  {/* Floating Action Buttons */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Link href={`/organizer/edit/${event.id}`}>
+                      <button className="w-10 h-10 rounded-full bg-white/90 dark:bg-black/90 backdrop-blur-md flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                        <Edit className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
+                      </button>
+                    </Link>
+                  </div>
+                </div>
 
-          {/* Stats */}
-          <div className="grid gap-4 md:grid-cols-3 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Events
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{events.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Events organized
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Attendees
-                </CardTitle>
-                <Users className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalAttendees}</div>
-                <p className="text-xs text-muted-foreground">
-                  People booked
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Revenue
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${totalRevenue}</div>
-                <p className="text-xs text-muted-foreground">
-                  From ticket sales
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Events List */}
-          {events.length === 0 ? (
-            <Card>
-              <CardContent className="pt-12 pb-12 text-center">
-                <h2 className="text-lg font-semibold mb-2">No events yet</h2>
-                <p className="text-muted-foreground mb-6">
-                  Create your first event to get started
-                </p>
-                <Link href="/organizer/create">
-                  <Button>Create Event</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {events.map((event) => (
-                <Card key={event.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="flex flex-col md:flex-row">
-                      {/* Event Image */}
-                      <div className="md:w-1/4 h-48 md:h-auto bg-muted overflow-hidden relative">
-                        {event.image ? (
-                          <Image
-                            src={event.image}
-                            alt={event.title}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 25vw"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#C85D2E] to-[#D4A574] flex items-center justify-center">
-                            <span className="text-white/50 text-sm">No Image</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Event Details */}
-                      <div className="flex-1 p-6 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <h3 className="text-xl font-bold">
-                                {event.title}
-                              </h3>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(event.date).toLocaleDateString()} • {event.location}
-                              </p>
-                            </div>
-                            <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                              {event.category}
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {event.description}
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-4 border-t border-border">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <div className="text-muted-foreground">
-                                Price
-                              </div>
-                              <div className="font-semibold">
-                                ${event.price}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-muted-foreground">
-                                Attendees
-                              </div>
-                              <div className="font-semibold">
-                                {event.rsvps.length} / {event.capacity}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-muted-foreground">
-                                Revenue
-                              </div>
-                              <div className="font-semibold text-primary">
-                                ${event.rsvps.length * event.price}
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-muted-foreground">
-                                Capacity
-                              </div>
-                              <div className="font-semibold">
-                                {Math.round(
-                                  (event.rsvps.length / event.capacity) * 100
-                                )}
-                                % full
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="md:w-48 p-6 bg-muted border-l border-border flex flex-col justify-center gap-2">
-                        <Link href={`/organizer/edit/${event.id}`}>
-                          <Button size="sm" variant="outline" className="w-full gap-2 bg-transparent">
-                            <Edit className="h-4 w-4" />
-                            Edit
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full gap-2 text-red-600 hover:text-red-700 bg-transparent"
-                          onClick={async () => {
-                            if (confirm('Are you sure?')) {
-                              try {
-                                const response = await fetch(`/api/events/${event.id}`, {
-                                  method: 'DELETE',
-                                });
-                                if (response.ok) {
-                                  setEvents(events.filter((e) => e.id !== event.id));
-                                } else {
-                                  alert('Failed to delete event');
-                                }
-                              } catch (error) {
-                                console.error('Error deleting event:', error);
-                                alert('Failed to delete event');
-                              }
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </div>
+                {/* Details Section */}
+                <div className="space-y-2 px-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-600 dark:text-orange-500">
+                      {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+                      {event.category}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-semibold tracking-tight text-neutral-900 dark:text-white truncate">
+                    {event.title}
+                  </h3>
+                  
+                  {/* Dashboard-specific Stats */}
+                  <div className="flex items-center justify-between pt-4 border-t border-black/[0.03] dark:border-white/[0.03]">
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Sold</span>
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white">{event.rsvps.length} / {event.capacity}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                    <div className="flex flex-col text-right">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Revenue</span>
+                      <span className="text-sm font-bold text-emerald-600">${event.rsvps.length * event.price}</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </main>
-    </>
+
+      <Footer />
+    </div>
   );
 }
